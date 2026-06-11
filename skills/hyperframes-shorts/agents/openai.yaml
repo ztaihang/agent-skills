@@ -1,0 +1,5 @@
+# Codex Agents metadata
+# Generated for hyperframes-shorts
+display_name: "HyperFrames 短视频设计"
+short_description: "口播稿拆镜、全自动构建 HyperFrames 项目，用户只需 npm run dev 预览"
+default_prompt: "请使用 hyperframes-shorts 技能：自动跑完 TTS/时间轴/校验，我只需 npm run dev 预览。"
