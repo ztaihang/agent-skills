@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Fail fast if index.html shows Studio UTF-8 / HTML corruption."""
+"""Agent-only: fail fast if index.html shows Studio UTF-8 / HTML corruption.
+
+End users do NOT run this script. Agent runs it before npm run check.
+Users only: cd <project> && npm run dev
+"""
 import json
 import re
 import sys

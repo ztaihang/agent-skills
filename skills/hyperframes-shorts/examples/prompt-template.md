@@ -147,7 +147,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 
 ```text
 项目已就绪：<项目路径>
-实际时长：XXs | 场景：N 镜 | 视觉：Data Drift | 首镜：kinetic-typography | 片尾：variant-b | 校验：已通过
+实际时长：XXs | 场景：N 镜 | 校验：已通过（含 HTML 编码检查）
 
 请预览（仅此一步）：
   cd "<项目路径>"
@@ -155,6 +155,8 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 
 预览满意后跟我说一声，我再帮你导出 MP4。
 ```
+
+**不要**在交付话术里列出 `verify-index-encoding.py`、`npm run check`、TTS 等命令。
 
 导出时你说「导出」或自己跑：
 
