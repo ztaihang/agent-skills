@@ -77,3 +77,4 @@ npm run dev
 - Edge TTS 单轨 `voiceover.wav` + 字幕对齐
 - 品牌片尾：`off` / 变体 A·B·C / 自定义
 - Agent 自动 TTS、时间轴、`npm run check`；**不自动 render**
+- **版式硬性规则**：字幕单行、文字不重叠、禁止 AI 风 emoji/表情包插图

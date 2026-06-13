@@ -122,8 +122,9 @@ npm run dev
 
 - 按语义**拆镜**，规划布局与动效；**每支视频轮换视觉风格**（`design.md` + visual-styles 预设）
 - 写 HTML 前读取 **css-animations / design-motion-principles / web-typography**，避免千篇一律的科技蓝 UI
-- **Edge TTS** 中文配音 + 字幕时间轴对齐
-- 可选**品牌片尾**（金句 zoom、头像、关注引导）
+- **Edge TTS** 中文配音 + 字幕时间轴对齐（**底部字幕每条单行**）
+- 可选**品牌片尾**（变体 A/B/C 或自定义）
+- **版式硬性规则**：上屏文字不重叠；禁止 AI 风 emoji / 表情包插图
 - 自动跑校验，交付前 **0 error**
 
 **不会**自动导出 MP4——需你预览确认后再说「导出 / render」。

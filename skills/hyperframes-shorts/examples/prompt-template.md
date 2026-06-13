@@ -61,7 +61,12 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
 
-请：自动跑完全部环境与构建（含 TTS、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+请：自动跑完全部环境与构建（含 design.md、TTS、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+
+硬性版式（必须遵守）：
+- 底部字幕每条永远单行，超出字数拆 lines.json，禁止两行字幕
+- 同场景上屏文字不得重叠遮挡
+- 禁止 emoji 大图、AI 风表情包/3D 卡通插图；用 SVG/几何/数据 viz 装饰
 ```
 
 | 字段 | 必填 | 不填时 |
@@ -111,7 +116,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 ```markdown
 【品牌片尾】
 片尾样式：自定义
-片尾说明：不要头像，两行大字居中；第一行 Slogan，第二行关注语
+片尾说明：不要头像，镜内两行大字居中（第一行 Slogan，第二行关注语）；**注意：指片尾画面布局，底部 `.sl` 字幕仍须单行**
 
 频道名：浣熊不加班
 

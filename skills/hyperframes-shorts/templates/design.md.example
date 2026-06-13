@@ -54,6 +54,7 @@ motion:
 
 - 标题 `{typography.headline}` — 竖屏 1080 宽时 headline 不小于 48px 等效
 - 正文/字幕参考 **web-typography** skill 移动端层级
+- **底部字幕 `.sl`**：`white-space: nowrap`；横屏单条 ≤16 汉字，竖屏 ≤12 汉字，超出拆 `lines.json`
 - 禁止 Inter + 渐变字 作为唯一识别（lazy default）
 
 ## Motion

@@ -124,6 +124,9 @@
 - ❌ 片尾固定 variant A（有头像 zoom）而风格明明是 Deconstructed / Shadow Cut
 - ❌ 全片只有一种 GSAP 入场：`from({ opacity: 0, y: 30 })` 重复 N 次
 - ❌ 背景纯 `#0a0a0a` 无任何 atmosphere 装饰层
+- ❌ **底部字幕两行** 或 `.sl` 无 `white-space: nowrap`
+- ❌ **同场景文字重叠**（标题压卡片、金句挡正文）
+- ❌ **Emoji / AI 表情包式插图** 当画面主视觉
 
 ---
 
