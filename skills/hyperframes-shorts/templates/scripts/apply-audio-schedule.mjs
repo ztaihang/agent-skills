@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const htmlPath = join(root, "index.html");
 const data = JSON.parse(readFileSync(join(root, "audio/schedule.json"), "utf8"));
-const { schedule, sceneTimes, totalDuration, voiceoverHash } = data;
+const { schedule, sceneTimes, totalDuration } = data;
 
 let html = readFileSync(htmlPath, "utf8");
 
@@ -33,8 +33,10 @@ setAttrById("audio", "voiceover", "data-duration", durStr);
 
 for (const [sceneId, times] of Object.entries(sceneTimes)) {
   const sceneDur = Math.max(0.001, +(times.duration - 0.001).toFixed(3));
-  const re = new RegExp(`(<div class="clip"[^>]*id="${sceneId}"[^>]*)(>)`);
+  // Match scene clip by id — class may be "clip" or "clip scene"; attrs order may vary (Studio inserts data-hf-id)
+  const re = new RegExp(`(<div[^>]*id="${sceneId}"[^>]*)(>)`);
   html = html.replace(re, (match, prefix, close) => {
+    if (!/\bclass="[^"]*\bclip\b/.test(prefix)) return match;
     let attrs = prefix.replace(/data-start="[^"]+"/, `data-start="${times.start}"`);
     attrs = attrs.replace(/data-duration="[^"]+"/, `data-duration="${sceneDur}"`);
     return attrs + close;
@@ -43,13 +45,17 @@ for (const [sceneId, times] of Object.entries(sceneTimes)) {
 
 for (const line of schedule) {
   const display = stripSubPunct(line.text);
-  const subRe = new RegExp(`(<div class="sub-bar sl" id="${line.id}"[^>]*>)[^<]+`);
-  html = html.replace(subRe, `$1${display}`);
+  const subDur = Math.max(0.001, +(line.duration - 0.001).toFixed(3));
+  const subRe = new RegExp(`(<div class="sub-bar sl clip" id="${line.id}"[^>]*)(>)[^<]+`);
+  html = html.replace(subRe, (match, prefix, close) => {
+    let attrs = prefix.replace(/data-start="[^"]+"/, `data-start="${line.start}"`);
+    attrs = attrs.replace(/data-duration="[^"]+"/, `data-duration="${subDur}"`);
+    return `${attrs}${close}${display}`;
+  });
 }
 
-const hash = voiceoverHash || "";
-const cache = hash ? `?v=${hash}` : "";
-const voiceBlock = `<audio id="voiceover" class="clip" data-start="0" data-duration="${durStr}" data-track-index="5" data-volume="1" src="audio/voiceover.wav${cache}"></audio>`;
+// Plain src — voiceover.wav?v=hash breaks hyperframes validate (404). Hard-refresh Studio after TTS rerun.
+const voiceBlock = `<audio id="voiceover" class="clip" data-start="0" data-duration="${durStr}" data-track-index="5" data-volume="1" src="audio/voiceover.wav"></audio>`;
 
 if (html.includes("<!-- narration audio -->")) {
   html = html.replace(
@@ -67,7 +73,7 @@ const gsapLines = schedule
   .map((line) => {
     const fadeIn = line.start;
     const fadeOut = line.showEnd;
-    return `mt.fromTo("#${line.id}", {opacity:0,y:10},{opacity:1,y:0,duration:0.14,ease:"power2.out"}, ${fadeIn});\nmt.set("#${line.id}", {opacity:0}, ${fadeOut});`;
+    return `mt.fromTo("#${line.id}", {opacity:0,y:10}, {opacity:1,y:0,duration:0.14,ease:"power2.out",immediateRender:false}, ${fadeIn});\nmt.set("#${line.id}", {opacity:0}, ${fadeOut});`;
   })
   .join("\n");
 
@@ -83,4 +89,4 @@ const meta = JSON.parse(readFileSync(metaPath, "utf8"));
 meta.duration = totalDuration;
 writeFileSync(metaPath, JSON.stringify(meta, null, 2) + "\n");
 
-console.log(`Updated index.html — total ${totalDuration}s, voiceover${cache}`);
+console.log(`Updated index.html — total ${totalDuration}s`);

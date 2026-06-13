@@ -22,4 +22,6 @@
 <audio id="bgm" class="clip" data-start="0" data-duration="60" data-track-index="6" data-volume="0.3" src="assets/bgm.mp3" loop></audio>
 ```
 
-流水线：`design.md` 定稿 → 写 `index.html` → `generate-tts.py` → `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾时）
+流水线：`design.md` 定稿 → 写 `index.html`（UTF-8；场景仅用 `class="clip"`）→ `generate-tts.py` → `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾时）→ `verify-index-encoding.py` → `npm run check`
+
+**Studio 注意：** `npm run dev` 开着时 Studio 可能回写 `index.html` 并把中文变成 `??`。Agent 写 HTML 前先停 dev；用户勿在 Studio 画布改中文，改 `audio/lines.json` 后重跑 TTS 流水线。
