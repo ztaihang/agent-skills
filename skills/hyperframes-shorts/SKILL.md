@@ -350,9 +350,10 @@ Scene N: [语义标题]
 
 | 输入 | Agent 做法 |
 |------|-----------|
-| `https://...` | `apply-brand.mjs` 或 fetch 下载到 `assets/avatar.png` |
-| 本地路径 | 复制到 `assets/avatar.png` |
-| 留空且已有 `assets/avatar.png` | 直接复用 |
+| `https://...` | `apply-brand.mjs` 下载到 `assets/avatar.png`（**仅 https**） |
+| `http://...` | **不下载**；终端提示改用 https / `avatarPath` / 本地 `assets/avatar.png` |
+| 本地路径 | `brand.json` 的 `avatarPath` → 复制到 `assets/avatar.png` |
+| 留空且已有 `assets/avatar.png` | 直接复用，不下载 |
 
 HTML：`<img id="brand-avatar" src="assets/avatar.png">`，圆形 120–160px，`object-fit: cover`。
 

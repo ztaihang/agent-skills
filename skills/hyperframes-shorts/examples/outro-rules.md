@@ -79,7 +79,7 @@
 | `followText` | 第二句「关注…」部分 |
 | `outroSub` | 第二句剩余（如「我们下期见！」） |
 
-4. 跑 `apply-brand.mjs` → 下载头像 + patch `#sc{N}-title` / `#sc{N}-follow` / `#sc{N}-sub`（N = 片尾镜号）
+4. 跑 `apply-brand.mjs` → **https** 头像下载（http 会跳过并提示）+ patch `#sc{N}-title` / `#sc{N}-follow` / `#sc{N}-sub`（N = 片尾镜号）
 5. 片尾镜 GSAP 对齐 `schedule` 中该 `scene` 各条的 `start`
 
 ### 默认片尾三变体（`outroMode: default`，按视觉风格选，禁止每支都用 A）

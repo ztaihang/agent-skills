@@ -56,7 +56,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 【品牌片尾】
 片尾样式：默认模板
 频道名：浣熊不加班
-头像：https://你的头像直链.webp
+头像：https://你的头像直链.webp（须 https；http 不下载）
 
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
@@ -133,7 +133,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 ```markdown
 【品牌片尾】
 频道名：浣熊不加班
-头像：https://你的头像直链.webp
+头像：https://你的头像直链.webp（须 https；http 不下载）
 
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
