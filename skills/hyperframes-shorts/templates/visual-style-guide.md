@@ -1,6 +1,7 @@
 # 视觉差异化指南（Agent 写 HTML 前必读）
 
-> 目标：**每支视频的配色、背景装饰、动效气质、首镜布局、片尾结构都应不同**，禁止套同一套「科技蓝 + 玻璃卡 + split 左文右图」。
+> 目标：**每支视频的配色、背景装饰、动效气质、首镜布局、片尾结构都应不同**，禁止套同一套「科技蓝 + 玻璃卡 + split 左文右图」。  
+> **完整执行方案（反 AI 味 + 该动必动）：** 见同目录 **`anti-slop-motion-scheme.md`**。
 
 ---
 
@@ -8,14 +9,17 @@
 
 | 顺序 | 来源 | 用途 |
 |------|------|------|
-| 1 | **`hyperframes` → `visual-styles.md`** | 选命名风格预设（YAML tokens） |
-| 2 | **`hyperframes` → `house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
-| 3 | **`css-animations`** skill | 背景 shimmer / glow / grain 等装饰动效 |
-| 4 | **`design-motion-principles`** skill | 入场节奏、缓动、stagger，避免抖动同质化 |
-| 5 | **`web-typography`** skill | 竖屏/横屏字号层级、行高、可读性 |
-| 6 | **本文件** | 选风格、写 `design.md`、排布局、选片尾变体 |
+| 1 | **`design-taste-frontend`**（taste-skill） | 反 slop pre-flight；HyperFrames 用 `mt` 时间轴，禁用 ScrollTrigger |
+| 2 | **`anti-slop-motion-scheme.md`** | 五道门禁 + L0–L4 动效层级（防廉价静态 PPT） |
+| 3 | **`hyperframes` → `visual-styles.md`** | 选命名风格预设（YAML tokens） |
+| 4 | **`hyperframes` → `house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
+| 5 | **`css-animations`** skill | 背景 shimmer / glow / grain 等装饰动效 |
+| 6 | **`design-motion-principles`** skill | 入场节奏、缓动、stagger；交付前 Audit |
+| 7 | **`web-typography`** skill | 竖屏/横屏字号层级、行高、可读性 |
+| 8 | **本文件** | 选风格、写 `design.md`、排布局、选片尾变体 |
+| 9 | **项目 `design.md`** | 本支视频唯一视觉 + Motion Plan 真相 |
 
-**禁止**在未读上述文件的情况下直接写 `index.html`。
+**硬门禁：** 无 `design.md` 或未读 taste-skill → **禁止**写 `index.html`。
 
 ---
 
@@ -117,8 +121,11 @@
 写 HTML 前自检，命中任一项须改方案：
 
 - ❌ 未写 `design.md` 就开写 `index.html`
-- ❌ 未读 `css-animations` / `design-motion-principles` / `web-typography`
+- ❌ 未读 **`design-taste-frontend`** / `anti-slop-motion-scheme.md` / 三前端 skill
 - ❌ 默认 cyan-on-dark + 紫蓝渐变 + 玻璃卡 2×2（house-style 明确列为 lazy default）
+- ❌ **纯静态背景**（L0 ambient 缺失 — 廉价 PPT 感）
+- ❌ **全片同一入场** `opacity:0, y:30` 且无 stagger（L1 缺失）
+- ❌ **口播数字画面不动**（L2 缺失）
 - ❌ 每镜都是相同圆角玻璃卡 + 左侧 accent 竖条
 - ❌ 首镜固定 `split-narration-visual` + 线框地球 SVG
 - ❌ 片尾固定 variant A（有头像 zoom）而风格明明是 Deconstructed / Shadow Cut

@@ -1,0 +1,18 @@
+body { background: #fff5f5; color: #1a1a2e; }
+.cover-badge { background: #ffe4e8; color: #c9184a; }
+.cover-title { color: #1a1a2e; }
+.cover-subtitle, .cover-intro { color: #64748b; }
+.cover-highlight { background: #e63946; color: #fff; }
+.cover-divider { color: #f4a6b8; }
+.cover-grid-item { background: #fff; box-shadow: 0 4px 20px rgba(230, 57, 70, 0.08); }
+.cover-grid-num { color: #e63946; }
+.cover-grid-name { color: #1a1a2e; }
+.cover-grid-tag { color: #64748b; }
+.card-num { border: 3px solid #e63946; color: #e63946; background: #fff; }
+.card-title { color: #1a1a2e; }
+.card-tags { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.card-tag:nth-child(odd) { color: #e63946; }
+.card-tag:nth-child(even) { color: #2563eb; }
+.card-desc { color: #9d174d; }
+.card-footer { border-color: #fecdd3; }
+.card-scenes { color: #64748b; }

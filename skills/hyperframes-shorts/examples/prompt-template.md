@@ -46,6 +46,11 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 总时长：（可选，不写就按口播估）
 视觉风格：（可选，见下方预设；不写则 Agent 按口播 mood + 项目名自动轮换，保证与上一支不同）
 
+taste 参数：（可选，短视频默认 5/6/6）
+  DESIGN_VARIANCE 5 | MOTION_INTENSITY 6 | VISUAL_DENSITY 6
+
+与上支错开：（可选）上一支用了 Data Drift + split 开场 + 片尾 A
+
 可选视觉预设（来自 hyperframes visual-styles.md）：
   Swiss Pulse | Data Drift | Deconstructed | Shadow Cut
   Velvet Standard | Maximalist Type | Soft Signal | Folk Frequency
@@ -61,12 +66,16 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
 
-请：自动跑完全部环境与构建（含 design.md、TTS、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+请：自动跑完全部环境与构建（含 taste-skill pre-flight、design.md + Motion Plan、TTS、时间轴、Post-audit、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
 
 硬性版式（必须遵守）：
-- 底部字幕每条永远单行，超出字数拆 lines.json，禁止两行字幕
+- 底部字幕每条永远单行：**未超 meta 动态上限不拆**；超长（常见 20 字+）在语义边界拆，禁止拦腰断句
+- TTS 的 lines.json **text 保留标点（含句末）**；上屏字幕 **不要句末标点**（脚本自动处理）
+- 多音字、英文、专有名词：lines.json 用 speak 修正 TTS，text 保持正确写法
+- 短口播镜须加副信息+ambient，禁止大面积空镜（见 scene-density-guide）
 - 同场景上屏文字不得重叠遮挡
 - 禁止 emoji 大图、AI 风表情包/3D 卡通插图；用 SVG/几何/数据 viz 装饰
+- 动效：每镜 L0 ambient + L1 stagger；数字对齐口播 L2；镜间转场轮换 L4
 ```
 
 | 字段 | 必填 | 不填时 |
@@ -75,7 +84,9 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 | 口播原文 | ✅ | — |
 | 视频尺寸 | 否 | 默认 1920×1080 横屏 30fps |
 | 总时长 | 否 | 按口播 + TTS 实测 |
-| 视觉风格 | 否 | Agent 按 mood + 轮换选 `visual-styles.md` 预设，写 `design.md`；**禁止**每支同一套科技蓝 UI |
+| 视觉风格 | 否 | Agent 按 mood + 轮换选 `visual-styles.md` 预设，写 `design.md` + Motion Plan；**禁止**每支同一套科技蓝 UI |
+| taste 参数 | 否 | 默认 DESIGN_VARIANCE 5 / MOTION 6 / DENSITY 6 |
+| 与上支错开 | 否 | Agent 读 `style-history.json` 或项目名 hash 轮换 |
 | 【品牌片尾】块 | 否 | **`outroMode: off`，完全不生成片尾** |
 | 片尾样式 | 否 | 不写 = **默认模板**（金句+头像+关注） |
 | 片尾口播全文 | 否* | *有片尾块时必填 |

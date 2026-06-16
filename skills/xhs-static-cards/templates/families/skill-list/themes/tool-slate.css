@@ -1,0 +1,12 @@
+body { background: #eef2f6; color: #0f172a; }
+.cover-badge { background: #dbeafe; color: #1d4ed8; }
+.cover-highlight { background: #1e293b; color: #e2e8f0; }
+.cover-grid-item { background: #fff; border-left: 4px solid #3b82f6; }
+.cover-grid-num { color: #3b82f6; font-family: ui-monospace, monospace; }
+.cover-grid-name { font-family: ui-monospace, monospace; font-size: 22px; }
+.card-num { background: #1e293b; color: #e2e8f0; border: none; font-family: ui-monospace, monospace; }
+.card-title { font-family: ui-monospace, monospace; font-size: 56px; }
+.card-tags { background: #f1f5f9; border-radius: 8px; }
+.card-tag { color: #1d4ed8; font-family: ui-monospace, monospace; font-size: 22px; }
+.card-footer { border-color: #cbd5e1; }
+.card-scenes { color: #64748b; }

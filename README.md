@@ -2,7 +2,10 @@
 
 面向 **Cursor / Codex / Claude Code / Trae（Vibe Coding）** 等 Agent 的 Skills 合集，用于扩展 AI 在特定任务上的工作流。
 
-当前收录：**中文 HyperFrames 解说短视频**一键构建（口播 → 分镜 → TTS → 预览）。
+当前收录：
+
+- **hyperframes-shorts** — 中文 HyperFrames 解说短视频（口播 → 分镜 → TTS → 预览）
+- **xhs-static-cards** — 小红书静态图文卡片（文案 → HTML 预览 → 导出 PNG）
 
 ---
 
@@ -11,6 +14,7 @@
 | Skill | 适用场景 | 文档 |
 |-------|---------|------|
 | **hyperframes-shorts** | 科技 / 教程类中文口播短视频（HyperFrames + GSAP） | [说明与模板](skills/hyperframes-shorts/) |
+| **xhs-static-cards** | Skill 推荐 / 工具清单等静态图文（1080×1440，3:4） | [说明与模板](skills/xhs-static-cards/) |
 
 ---
 
@@ -131,12 +135,42 @@ npm run dev
 
 ---
 
+## 快速开始（xhs-static-cards）
+
+### 1. 安装
+
+```bash
+npx skills add ztaihang/agent-skills@xhs-static-cards
+```
+
+配套 skill（推荐）：
+
+```bash
+npx skills add nexu-io/open-design@taste-skill -g -y
+npx skills add nexu-io/open-design@frontend-design -g -y
+npx skills add spencerpauly/awesome-cursor-skills@exporting-to-png -g -y
+npx skills add wondelai/skills@web-typography -g -y
+```
+
+### 2. 在 Agent 里使用
+
+1. `@xhs-static-cards` 或粘贴 [提示词模板](skills/xhs-static-cards/examples/prompt-template.md)
+2. 填写 **项目路径** 和 **文案稿**
+3. Agent 生成 `content.json` 并 `npm run build`
+4. 你执行 `npm run dev` 预览
+5. 满意后说「导出」，Agent 执行 `npm run export`
+
+与 **hyperframes-shorts** 互补：本 skill 产出 **静态 PNG**，不做视频、不加动画、不自动发布。
+
+---
+
 ## 提示词模板
 
 | 文档 | 内容 |
 |------|------|
-| [prompt-template.md](skills/hyperframes-shorts/examples/prompt-template.md) | 标准 / 最小 / 片尾提示词 |
-| [outro-rules.md](skills/hyperframes-shorts/examples/outro-rules.md) | 品牌片尾三种模式 |
+| [hyperframes-shorts · prompt-template.md](skills/hyperframes-shorts/examples/prompt-template.md) | 短视频标准 / 最小 / 片尾提示词 |
+| [hyperframes-shorts · outro-rules.md](skills/hyperframes-shorts/examples/outro-rules.md) | 品牌片尾三种模式 |
+| [xhs-static-cards · prompt-template.md](skills/xhs-static-cards/examples/prompt-template.md) | 静态图文卡片提示词 |
 
 ---
 

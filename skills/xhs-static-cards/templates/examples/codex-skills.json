@@ -1,0 +1,74 @@
+{
+  "type": "skill-list",
+  "theme": "soft-pink",
+  "title": "Codex 必装 Skill 榜",
+  "subtitle": "别再裸装了！这 9 个 Skills 让 AI 能力翻倍",
+  "intro": "刚装 Codex 的时候我也是一脸懵，后来才发现—— Skills 才是 Codex 的灵魂啊！！整理了 9 个我每天都在用的必装技能 👇",
+  "badge": "AI 工具推荐",
+  "highlight": "TOP 9",
+  "items": [
+    {
+      "num": 1,
+      "name": "humanizer",
+      "tags": ["去 AI 味", "内容质感"],
+      "desc": "让 AI 生成的文字像真人写的，再也不怕被看出来是 AI。",
+      "scenes": "社交媒体文案、邮件润色、文章改写"
+    },
+    {
+      "num": 2,
+      "name": "claude-design",
+      "tags": ["产品设计", "界面原型"],
+      "desc": "一句话就能生成 UI 界面原型，设计效率提升 10 倍。",
+      "scenes": "App 界面、网页设计、原型制作"
+    },
+    {
+      "num": 3,
+      "name": "research-paper-writing",
+      "tags": ["科研写作", "论文"],
+      "desc": "自动检索文献、生成论文框架，科研效率翻倍。",
+      "scenes": "学术论文、研究报告、文献综述"
+    },
+    {
+      "num": 4,
+      "name": "arxiv",
+      "tags": ["文献雷达", "前沿追踪"],
+      "desc": "自动追踪 arXiv 最新论文，及时更新你的知识库。",
+      "scenes": "文献阅读、研究方向追踪、知识更新"
+    },
+    {
+      "num": 5,
+      "name": "jupyter-live-kernel",
+      "tags": ["数据科学", "交互分析"],
+      "desc": "在对话中直接运行 Python 代码，数据清洗、可视化、建模一气呵成。",
+      "scenes": "数据分析、机器学习、科学计算"
+    },
+    {
+      "num": 6,
+      "name": "writing-plans",
+      "tags": ["规划管理", "选题"],
+      "desc": "帮你规划写作思路、梳理大纲结构，选题不再纠结。",
+      "scenes": "内容创作、选题规划、大纲生成"
+    },
+    {
+      "num": 7,
+      "name": "powerpoint",
+      "tags": ["汇报输出", "PPT 生成"],
+      "desc": "一键生成演示文稿，从此告别熬夜做 PPT。",
+      "scenes": "工作汇报、方案提案、演示分享"
+    },
+    {
+      "num": 8,
+      "name": "popular-web",
+      "tags": ["审美提升", "网页灵感"],
+      "desc": "网页设计灵感库，审美在线不跑偏。",
+      "scenes": "Landing Page、组件参考、配色灵感"
+    },
+    {
+      "num": 9,
+      "name": "ideation",
+      "tags": ["选题灵感", "创意"],
+      "desc": "创意枯竭时的救星，选题不再头秃。",
+      "scenes": "内容策划、头脑风暴、栏目选题"
+    }
+  ]
+}

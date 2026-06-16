@@ -31,6 +31,7 @@ npx skills add ztaihang/agent-skills@hyperframes-shorts -a trae -y
 ### 还须安装
 
 ```bash
+npx skills add leonxlnx/taste-skill@design-taste-frontend -g -y
 npx skills add heygen-com/hyperframes@hyperframes
 npx skills add heygen-com/hyperframes@hyperframes-cli
 npx skills add heygen-com/hyperframes@gsap
@@ -40,6 +41,8 @@ npx skills add wondelai/skills@web-typography
 ```
 
 系统：FFmpeg、Node.js ≥ 22、Python 3 + `pip install edge-tts`
+
+**反 AI 味 + 有质感动效：** [templates/anti-slop-motion-scheme.md](templates/anti-slop-motion-scheme.md)
 
 ---
 
@@ -65,15 +68,19 @@ npm run dev
 |------|------|
 | [examples/prompt-template.md](examples/prompt-template.md) | 用户提示词模板 |
 | [examples/outro-rules.md](examples/outro-rules.md) | 品牌片尾三种模式 |
-| [templates/](templates/) | 新建视频项目时复制的脚本 |
+| [templates/anti-slop-motion-scheme.md](templates/anti-slop-motion-scheme.md) | 反 AI 味 + L0–L4 动效方案 |
+| [templates/scene-density-guide.md](templates/scene-density-guide.md) | 镜内防太空 |
+| [templates/subtitle-tts-guide.md](templates/subtitle-tts-guide.md) | 字幕拆条 + TTS 读音 |
 | [SKILL.md](SKILL.md) | 完整 Agent 规范 |
 
 ---
 
 ## 特性摘要
 
-- 语义拆镜、多种布局、**每项目 `design.md` + visual-styles 预设轮换**
-- 写 HTML 前**必读** css-animations / design-motion-principles / web-typography
+- 语义拆镜、多种布局、**每项目 `design.md` + Motion Plan + visual-styles 轮换**
+- 写 HTML 前**必读** taste-skill + anti-slop 方案 + css-animations / design-motion-principles / web-typography
+- **镜内防太空**：短镜须副信息 + ambient（`scene-density-guide.md`）
+- **字幕语义拆条 + speak 读音**：`generate-tts.py` 内置校验
 - Edge TTS 单轨 `voiceover.wav` + 字幕对齐
 - 品牌片尾：`off` / 变体 A·B·C / 自定义
 - Agent 自动 TTS、时间轴、`npm run check`；**不自动 render**

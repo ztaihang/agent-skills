@@ -1,5 +1,13 @@
 ---
 name: Data Drift
+styleName: Data Drift
+openingLayout: kinetic-typography
+outroVariant: b
+surface: solid
+tasteDials:
+  DESIGN_VARIANCE: 5
+  MOTION_INTENSITY: 6
+  VISUAL_DENSITY: 6
 colors:
   primary: "#0a0a0a"
   on-primary: "#e0e0e0"
@@ -38,6 +46,10 @@ motion:
     - light-traces
     - radial-glow
   transition: gravitational-lens
+differentiatorsFromLast:
+  - styleName
+  - openingLayout
+  - outroVariant
 ---
 
 # Overview
@@ -49,22 +61,43 @@ motion:
 - 背景 `{colors.primary}`，前景 `{colors.on-primary}`
 - 强调色 `{colors.accent-purple}` / `{colors.accent-cyan}` 分工：数据用 cyan，关键词用 purple
 - 禁止额外发明第四套 accent
+- **禁止**未写入本文件的 lazy 色（`#3b82f6`、`#06b6d4` 等若不在 YAML 则不可用）
 
 ## Typography
 
 - 标题 `{typography.headline}` — 竖屏 1080 宽时 headline 不小于 48px 等效
 - 正文/字幕参考 **web-typography** skill 移动端层级
 - **底部字幕 `.sl`**：`white-space: nowrap`；横屏单条 ≤16 汉字，竖屏 ≤12 汉字，超出拆 `lines.json`
-- 禁止 Inter + 渐变字 作为唯一识别（lazy default）
+- 禁止 Inter + 渐变字 作为唯一识别（lazy default）；读 **taste-skill** 字体纪律
+
+## Surface（卡片材质）
+
+- `surface: solid` — 实底 + 边框（**默认**，非 glass）
+- `surface: outline` — 线框卡 + 轻 fill
+- `surface: glass` — 仅当风格 preset 明确需要且 taste pre-flight 通过
+
+## Motion Plan
+
+（写 HTML 前必填 — 见 `anti-slop-motion-scheme.md` §三、§四）
+
+- **L0 ambient:** （例）particle-field + radial-glow，共享 8s breath
+- **L1 入场:** 首镜 title stagger 0.1s；流程镜 步骤→箭头→步骤
+- **L2 语义:** scN 指标 count-up @ schedule 某条 start；并列卡逐步 glow
+- **L3 kinetic:** 全片 2–4 处（列出 scene + 词句）
+- **L4 转场:** push / blur / zoom 轮换列表
+- **禁止:** 纯黑无 ambient；全片同一 y:30 入场
 
 ## Motion
 
 - 入场遵循 **design-motion-principles**：stagger 0.08–0.15s，禁止每元素同一 `power2.out`
-- 背景装饰遵循 **css-animations**：至少 2 层 atmosphere 慢速 ambient 循环
-- 转场：`{motion.transition}`
+- 背景装饰遵循 **css-animations**：至少 2 层 atmosphere 慢速 ambient 循环（**L0 必做**）
+- 转场：`{motion.transition}`；镜间 ≥2 种 GSAP 转场类型
+- **HyperFrames only：** 仅用主时间轴 `mt`；**禁止** ScrollTrigger / scroll 监听
 
 ## Do's and Don'ts
 
 - ✅ 每镜 2–5 个装饰层，共享一种 ambient 呼吸
-- ✅ 数据镜用 `{colors.accent-cyan}` 高亮数字
+- ✅ 数据镜用 `{colors.accent-cyan}` 高亮数字 + count-up
+- ✅ 交付前跑 **anti-slop-motion-scheme** 门禁 4 + taste pre-flight
 - ❌ 左侧 accent 竖条、纯黑 `#000`、未声明的 neon cyan
+- ❌ 无动效的静态 PPT 式排版

@@ -7,11 +7,22 @@
 | `templates/scripts/*` | `项目/scripts/` |
 | `templates/audio/lines.json.example` | `项目/audio/lines.json`（按口播改写） |
 | `templates/assets/brand.json.example` | `项目/assets/brand.json`（无片尾则 `outroMode: off`） |
-| `templates/design.md.example` | `项目/design.md`（**必改**：YAML 来自所选 `visual-styles.md` 预设） |
+| `templates/design.md.example` | `项目/design.md`（**必改**：YAML + **Motion Plan** + tasteDials） |
+| `templates/style-history.json.example` | `项目/assets/style-history.json`（**可选**，频道轮换） |
 
 **写 HTML 前必读（不复制到项目）：**
 
-- `templates/visual-style-guide.md` — 风格轮换、首镜布局、片尾变体 A/B/C、禁止同质化
+| 文件 | 内容 |
+|------|------|
+| `templates/anti-slop-motion-scheme.md` | **反 AI 味 + L0–L4 动效**（五道门禁） |
+| `templates/scene-density-guide.md` | **镜内防太空**、副信息层次 |
+| `templates/subtitle-tts-guide.md` | **字幕语义拆条 + speak 读音**（写 `lines.json` 前） |
+| `templates/visual-style-guide.md` | 风格轮换、首镜布局、片尾变体 A/B/C |
+
+**写 HTML 前必读 Skill：**
+
+- `design-taste-frontend`（taste-skill）
+- `css-animations` · `design-motion-principles` · `web-typography`
 
 `index.html` 中须预留：
 
@@ -24,6 +35,6 @@
 
 流水线（**全部由 Agent 自动执行**；用户交付后只 `npm run dev`）：
 
-`design.md` → 写 `index.html`（UTF-8；场景仅用 `class="clip"`）→ `generate-tts.py` → `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **`verify-index-encoding.py`（Agent 质检，用户不跑）** → `npm run check`
+`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（subtitle-tts-guide）** → 写 `index.html`（scene-density + L0–L4）→ `generate-tts.py`（含拆条校验）→ `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
 
 **Studio 注意：** `npm run dev` 开着时 Studio 可能回写 `index.html` 并把中文变成 `??`。Agent 写 HTML 前先停 dev；用户勿在 Studio 画布改中文，改 `audio/lines.json` 后重跑 TTS 流水线。

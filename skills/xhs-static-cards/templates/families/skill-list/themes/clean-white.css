@@ -1,0 +1,14 @@
+body { background: #f8fafc; color: #0f172a; }
+.cover-badge { background: #e2e8f0; color: #334155; }
+.cover-title { color: #0f172a; }
+.cover-subtitle, .cover-intro { color: #64748b; }
+.cover-highlight { background: #0f172a; color: #f8fafc; }
+.cover-divider { color: #cbd5e1; }
+.cover-grid-item { background: #fff; border: 1px solid #e2e8f0; }
+.cover-grid-num { color: #0f172a; }
+.card-num { border: 3px solid #0f172a; color: #0f172a; background: #fff; }
+.card-tags { background: #fff; border: 1px solid #e2e8f0; }
+.card-tag { color: #475569; }
+.card-desc { color: #334155; }
+.card-footer { border-color: #e2e8f0; }
+.card-scenes { color: #64748b; }
