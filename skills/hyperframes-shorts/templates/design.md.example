@@ -67,7 +67,7 @@ differentiatorsFromLast:
 
 - 标题 `{typography.headline}` — 竖屏 1080 宽时 headline 不小于 48px 等效
 - 正文/字幕参考 **web-typography** skill 移动端层级
-- **底部字幕 `.sl`**：`white-space: nowrap`；横屏单条 ≤16 汉字，竖屏 ≤12 汉字，超出拆 `lines.json`
+- **底部字幕 `.sl`**：`white-space: nowrap`；横屏单条 ≤16 汉字，竖屏 ≤12 汉字；超长拆 `subtitle` 显示层，**不拆 TTS wav**
 - 禁止 Inter + 渐变字 作为唯一识别（lazy default）；读 **taste-skill** 字体纪律
 
 ## Surface（卡片材质）
@@ -80,23 +80,24 @@ differentiatorsFromLast:
 
 （写 HTML 前必填 — 见 `anti-slop-motion-scheme.md` §三、§四）
 
-- **L0 ambient:** （例）particle-field + radial-glow，共享 8s breath
+- **L0 背景:** `#root` gradient + grid（**静态**）；可选全片 1 个 `#root` 慢循环
 - **L1 入场:** 首镜 title stagger 0.1s；流程镜 步骤→箭头→步骤
 - **L2 语义:** scN 指标 count-up @ schedule 某条 start；并列卡逐步 glow
 - **L3 kinetic:** 全片 2–4 处（列出 scene + 词句）
 - **L4 转场:** push / blur / zoom 轮换列表
-- **禁止:** 纯黑无 ambient；全片同一 y:30 入场
+- **禁止:** 纯黑无 `#root` 装饰；每镜 feTurbulence infinite；全片同一 y:30 入场
 
 ## Motion
 
 - 入场遵循 **design-motion-principles**：stagger 0.08–0.15s，禁止每元素同一 `power2.out`
-- 背景装饰遵循 **css-animations**：至少 2 层 atmosphere 慢速 ambient 循环（**L0 必做**）
+- 背景装饰：**默认静态** — `#root` gradient/网格/暗角；**禁止**每镜复制 `.ambient` + CSS `infinite`
+- 可选：全片 **1 个** `#root` 级慢循环（见 `anti-slop-motion-scheme.md` L0）
 - 转场：`{motion.transition}`；镜间 ≥2 种 GSAP 转场类型
 - **HyperFrames only：** 仅用主时间轴 `mt`；**禁止** ScrollTrigger / scroll 监听
 
 ## Do's and Don'ts
 
-- ✅ 每镜 2–5 个装饰层，共享一种 ambient 呼吸
+- ✅ `#root` 静态 gradient/网格 + 镜内副信息（chip / ghost 静态词）
 - ✅ 数据镜用 `{colors.accent-cyan}` 高亮数字 + count-up
 - ✅ 交付前跑 **anti-slop-motion-scheme** 门禁 4 + taste pre-flight
 - ❌ 左侧 accent 竖条、纯黑 `#000`、未声明的 neon cyan

@@ -11,13 +11,14 @@
 |------|------|------|
 | 1 | **`design-taste-frontend`**（taste-skill） | 反 slop pre-flight；HyperFrames 用 `mt` 时间轴，禁用 ScrollTrigger |
 | 2 | **`anti-slop-motion-scheme.md`** | 五道门禁 + L0–L4 动效层级（防廉价静态 PPT） |
-| 3 | **`hyperframes` → `visual-styles.md`** | 选命名风格预设（YAML tokens） |
-| 4 | **`hyperframes` → `house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
-| 5 | **`css-animations`** skill | 背景 shimmer / glow / grain 等装饰动效 |
-| 6 | **`design-motion-principles`** skill | 入场节奏、缓动、stagger；交付前 Audit |
-| 7 | **`web-typography`** skill | 竖屏/横屏字号层级、行高、可读性 |
-| 8 | **本文件** | 选风格、写 `design.md`、排布局、选片尾变体 |
-| 9 | **项目 `design.md`** | 本支视频唯一视觉 + Motion Plan 真相 |
+| 3 | **`hyperframes-zh-checklist.md`** | **中文字体/字幕/背景/圆角 + 生成后自检** |
+| 4 | **`hyperframes` → `visual-styles.md`** | 选命名风格预设（YAML tokens） |
+| 5 | **`hyperframes` → `house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
+| 6 | **`css-animations`** skill | 背景 shimmer / glow / grain 等装饰动效 |
+| 7 | **`design-motion-principles`** skill | 入场节奏、缓动、stagger；交付前 Audit |
+| 8 | **`web-typography`** skill | 竖屏/横屏字号层级、行高、可读性 |
+| 9 | **本文件** | 选风格、写 `design.md`、排布局、选片尾变体 |
+| 10 | **项目 `design.md`** | 本支视频唯一视觉 + Motion Plan 真相 |
 
 **硬门禁：** 无 `design.md` 或未读 taste-skill → **禁止**写 `index.html`。
 
@@ -62,7 +63,7 @@
 若无法得知上一支用了什么风格，用 **项目文件夹名** 做确定性轮换，避免 Agent 每次都选 Data Drift：
 
 ```text
-预设池（科技财经常用）：
+预设池（中文解说常用）：
   Swiss Pulse | Data Drift | Deconstructed | Shadow Cut | Velvet Standard | Maximalist Type
 
 索引 = (项目文件夹名每个字符 charCode 之和) mod 6
@@ -81,7 +82,7 @@
 |------|-------------|---------------------------|---------|
 | Swiss Pulse | `metric-comparison-band` 或 `split-narration-visual` | 网格线、注册标记 | 硬切 / cinematic-zoom |
 | Data Drift | `kinetic-typography` 或 `data-chart-race` | 粒子场、径向光晕 | gravitational-lens |
-| Deconstructed | `full-bleed-statement` | 扫描线、glitch grain | glitch / whip-pan |
+| Deconstructed | `full-bleed-statement` | **静态**网格 + 可选静态 scan 纹理（**禁止**每镜 feTurbulence infinite） | glitch / whip-pan |
 | Shadow Cut | `full-bleed-statement` | 深阴影、暗角 | domain-warp |
 | Velvet Standard | `narration-trend-list` | 细颗粒、发丝线 | cross-warp-morph |
 | Maximalist Type | `kinetic-typography` | 叠字层、色块 | ridged-burn |
@@ -123,7 +124,8 @@
 - ❌ 未写 `design.md` 就开写 `index.html`
 - ❌ 未读 **`design-taste-frontend`** / `anti-slop-motion-scheme.md` / 三前端 skill
 - ❌ 默认 cyan-on-dark + 紫蓝渐变 + 玻璃卡 2×2（house-style 明确列为 lazy default）
-- ❌ **纯静态背景**（L0 ambient 缺失 — 廉价 PPT 感）
+- ❌ **纯静态背景**（`#root` 无 gradient/网格 — 廉价 PPT 感）
+- ❌ **每镜 `.ambient` + CSS `infinite`**（preview CPU 高、肉眼几乎看不出）
 - ❌ **全片同一入场** `opacity:0, y:30` 且无 stagger（L1 缺失）
 - ❌ **口播数字画面不动**（L2 缺失）
 - ❌ 每镜都是相同圆角玻璃卡 + 左侧 accent 竖条
@@ -131,6 +133,8 @@
 - ❌ 片尾固定 variant A（有头像 zoom）而风格明明是 Deconstructed / Shadow Cut
 - ❌ 全片只有一种 GSAP 入场：`from({ opacity: 0, y: 30 })` 重复 N 次
 - ❌ 背景纯 `#0a0a0a` 无任何 atmosphere 装饰层
+- ❌ **中文项目用 Google Fonts / PingFang / 微软雅黑**（须 `fonts/` + `@font-face`，见 **`hyperframes-zh-checklist.md`**）
+- ❌ **未跑 `verify-delivery-checklist.py` 即交付**
 - ❌ **底部字幕两行** 或 `.sl` 无 `white-space: nowrap`
 - ❌ **同场景文字重叠**（标题压卡片、金句挡正文）
 - ❌ **Emoji / AI 表情包式插图** 当画面主视觉

@@ -70,7 +70,8 @@ npm run dev
 | [examples/outro-rules.md](examples/outro-rules.md) | 品牌片尾三种模式 |
 | [templates/anti-slop-motion-scheme.md](templates/anti-slop-motion-scheme.md) | 反 AI 味 + L0–L4 动效方案 |
 | [templates/scene-density-guide.md](templates/scene-density-guide.md) | 镜内防太空 |
-| [templates/subtitle-tts-guide.md](templates/subtitle-tts-guide.md) | 字幕拆条 + TTS 读音 |
+| [templates/subtitle-tts-guide.md](templates/subtitle-tts-guide.md) | 口播/字幕分离 + speak 读音 |
+| [templates/hyperframes-zh-checklist.md](templates/hyperframes-zh-checklist.md) | **中文交付自检（字体/字幕/背景）** |
 | [SKILL.md](SKILL.md) | 完整 Agent 规范 |
 
 ---
@@ -79,9 +80,10 @@ npm run dev
 
 - 语义拆镜、多种布局、**每项目 `design.md` + Motion Plan + visual-styles 轮换**
 - 写 HTML 前**必读** taste-skill + anti-slop 方案 + css-animations / design-motion-principles / web-typography
-- **镜内防太空**：短镜须副信息 + ambient（`scene-density-guide.md`）
-- **字幕语义拆条 + speak 读音**：`generate-tts.py` 内置校验
+- **镜内防太空**：短镜须副信息 + `#root` 静态装饰（`scene-density-guide.md`；禁止每镜 infinite ambient）
+- **口播 / 字幕分离**：`voice` 整句 TTS；`subtitle` 仅上屏；禁止为 maxHan 拆多 wav
 - Edge TTS 单轨 `voiceover.wav` + 字幕对齐
 - 品牌片尾：`off` / 变体 A·B·C / 自定义
 - Agent 自动 TTS、时间轴、`npm run check`；**不自动 render**
-- **版式硬性规则**：字幕单行、文字不重叠、禁止 AI 风 emoji/表情包插图
+- **交付自检**：`verify-delivery-checklist.py` + `verify-index-encoding.py` + `npm run check`（0 error）
+- **版式硬性规则**：字幕单行、文字不重叠、**本地中文字体**、禁止 AI 风 emoji/表情包插图

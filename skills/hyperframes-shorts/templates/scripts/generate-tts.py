@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Per-line Edge TTS → segments/*.wav, concat voiceover.wav, write schedule.json."""
+"""Per-line Edge TTS → segments/*.wav, concat voiceover.wav, write schedule.json.
+
+TTS granularity = one breath per lines.json row (voice/text).
+Subtitle display may split into subtitleParts without extra wav files.
+"""
 import asyncio
 import hashlib
 import json
@@ -23,7 +27,7 @@ VOICE = "zh-CN-YunyangNeural"
 RATE = "+12%"  # 实测总时长 >150s 时改为 "+18%" 后重跑
 GAP = 0
 
-# 上句结尾禁止（易拦腰断句）— 见 templates/subtitle-tts-guide.md
+# 字幕拆条禁止断点 — 见 templates/subtitle-tts-guide.md（仅校验 subtitle，不拦 TTS 整句）
 FORBIDDEN_TAIL = (
     "我的",
     "你的",
@@ -49,10 +53,8 @@ FORBIDDEN_TAIL = (
     "对",
     "从",
     "向",
-    "把",
 )
 
-# 下句开头禁止（上句已断错）
 FORBIDDEN_HEAD = (
     "的",
     "地",
@@ -103,71 +105,111 @@ def strip_for_check(text: str) -> str:
     return re.sub(r"[，。！？：；、\s]+$", "", text.strip())
 
 
-def validate_lines(lines: list[dict]) -> tuple[list[str], list[str]]:
-    errors: list[str] = []
-    warnings: list[str] = []
-    max_han, vertical = load_subtitle_limits()
-    orient = "竖屏" if vertical else "横屏"
+def strip_sub_punct(text: str) -> str:
+    return re.sub(r"[，。！？：；、]+$", "", text.strip())
 
-    for i, item in enumerate(lines):
-        line_id = item.get("id", f"#{i}")
-        text = item.get("text", "")
-        if not text.strip():
-            errors.append(f"{line_id}: text 为空")
+
+def voice_text(item: dict) -> str:
+    """TTS 口播原文：voice 优先，兼容旧字段 text。"""
+    return (item.get("voice") or item.get("text") or "").strip()
+
+
+def tts_payload(item: dict) -> str:
+    return item.get("speak") or voice_text(item)
+
+
+def split_subtitle_display(text: str, max_units: float) -> list[str]:
+    """显示层自动按标点拆条；仍超长则递归再拆，不生成额外 wav。"""
+    core = strip_sub_punct(text)
+    if visual_units(core) <= max_units:
+        return [core]
+
+    raw_parts: list[str] = []
+    buf = ""
+    for seg in re.findall(r"[^，。！？、；]+[，。！？、；]?", text):
+        candidate = buf + seg
+        if visual_units(strip_sub_punct(candidate)) <= max_units:
+            buf = candidate
+        else:
+            if buf.strip():
+                raw_parts.append(strip_sub_punct(buf))
+            buf = seg
+    if buf.strip():
+        raw_parts.append(strip_sub_punct(buf))
+    if not raw_parts:
+        raw_parts = [core]
+
+    final: list[str] = []
+    for part in raw_parts:
+        final.extend(_split_part_until_fit(part, max_units))
+    return final if final else [core]
+
+
+def _split_part_until_fit(text: str, max_units: float) -> list[str]:
+    text = strip_sub_punct(text)
+    if not text:
+        return []
+    if visual_units(text) <= max_units:
+        return [text]
+
+    for delim in ("，", "、", "；"):
+        if delim not in text:
             continue
+        segs = text.split(delim)
+        parts: list[str] = []
+        buf = ""
+        for i, seg in enumerate(segs):
+            suffix = delim if i < len(segs) - 1 else ""
+            piece = seg + suffix
+            cand = buf + piece
+            if visual_units(strip_sub_punct(cand)) <= max_units:
+                buf = cand
+            else:
+                if buf.strip():
+                    parts.append(strip_sub_punct(buf))
+                buf = piece
+        if buf.strip():
+            parts.append(strip_sub_punct(buf))
+        if parts and all(visual_units(p) <= max_units for p in parts):
+            return parts
+        if parts:
+            out: list[str] = []
+            for p in parts:
+                out.extend(_split_part_until_fit(p, max_units))
+            return out
 
-        units = visual_units(text)
-        if units > max_han:
-            errors.append(
-                f"{line_id}: 字幕约 {units:.1f} 单位 > {orient}上限 {max_han}，"
-                f"请按语义拆条（见 subtitle-tts-guide.md）"
-            )
-        elif units <= max_han - 4 and i + 1 < len(lines):
-            nxt = lines[i + 1]
-            if line_scene(item) == line_scene(nxt):
-                u1 = visual_units(text)
-                u2 = visual_units(nxt.get("text", ""))
-                if u1 + u2 <= max_han + 1:
-                    warnings.append(
-                        f"{line_id}+{nxt.get('id')}: 同镜相邻两条合计可合并为一条"
-                        f"（{u1 + u2:.1f} ≤ {max_han}），避免碎句"
-                    )
+    return _chunk_by_units(text, max_units)
 
-        core = strip_for_check(text)
-        for tail in FORBIDDEN_TAIL:
-            if core.endswith(tail) and len(core) > len(tail):
-                errors.append(
-                    f"{line_id}: 断句错误 — 以「{tail}」结尾，"
-                    f"易出现「{tail} | …」拦腰断（改断点或合并）"
-                )
-                break
 
-        if i > 0:
-            prev = lines[i - 1]
-            if line_scene(prev) == line_scene(item):
-                prev_core = strip_for_check(prev.get("text", ""))
-                for tail in ("让我的", "让你的", "让其", "我的", "你的"):
-                    if prev_core.endswith(tail):
-                        head = strip_for_check(text)[:2]
-                        errors.append(
-                            f"{prev.get('id')}+{line_id}: 典型错误断句 "
-                            f"「…{tail}」|「{text[:8]}…」— 禁止"
-                        )
-                        break
+def _chunk_by_units(text: str, max_units: float) -> list[str]:
+    """无标点兜底：按视觉宽度贪心切分（仅显示层，不影响 TTS）。"""
+    text = strip_sub_punct(text)
+    if visual_units(text) <= max_units:
+        return [text]
+    parts: list[str] = []
+    buf = ""
+    for ch in text:
+        cand = buf + ch
+        if visual_units(cand) <= max_units:
+            buf = cand
+        else:
+            if buf:
+                parts.append(buf)
+            buf = ch
+    if buf:
+        parts.append(buf)
+    return parts if parts else [text]
 
-        head = strip_for_check(text)[:1]
-        if head in FORBIDDEN_HEAD and i > 0:
-            prev = lines[i - 1]
-            if line_scene(prev) == line_scene(item):
-                warnings.append(f"{line_id}: 以「{head}」开头，确认上句断点是否合理")
 
-        if re.search(r"[A-Za-z]{2,}", text) and not item.get("speak"):
-            warnings.append(
-                f"{line_id}: 含英文/专有名词，建议加 speak 字段修正读音"
-                f"（如 OpenClaw → Open Claw）"
-            )
-
-    return errors, warnings
+def get_subtitle_parts(item: dict, max_han: int) -> list[str]:
+    if "subtitleParts" in item and item["subtitleParts"]:
+        return [strip_sub_punct(str(p)) for p in item["subtitleParts"]]
+    sub = item.get("subtitle")
+    if isinstance(sub, list) and sub:
+        return [strip_sub_punct(str(p)) for p in sub]
+    if isinstance(sub, str) and sub.strip():
+        return [strip_sub_punct(sub)]
+    return split_subtitle_display(voice_text(item), max_han)
 
 
 def line_scene(item: dict) -> int:
@@ -179,8 +221,110 @@ def line_scene(item: dict) -> int:
     return 1
 
 
-def tts_payload(item: dict) -> str:
-    return item.get("speak") or item.get("tts") or item["text"]
+def validate_subtitle_parts(
+    line_id: str, parts: list[str], max_han: int, orient: str
+) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    for j, part in enumerate(parts):
+        sub_id = line_id if j == 0 else f"{line_id}_sub{j + 1}"
+        units = visual_units(part)
+        if units > max_han:
+            errors.append(
+                f"{sub_id}: 字幕约 {units:.1f} 单位 > {orient}上限 {max_han}，"
+                f"请调整 subtitle/subtitleParts 或在逗号/句号处继续拆显示层"
+            )
+        core = strip_for_check(part)
+        for tail in FORBIDDEN_TAIL:
+            if core.endswith(tail) and len(core) > len(tail):
+                errors.append(
+                    f"{sub_id}: 字幕断句错误 — 以「{tail}」结尾，"
+                    f"禁止拦腰断（改 subtitle 断点）"
+                )
+                break
+        if j > 0:
+            head = strip_for_check(part)[:1]
+            if head in FORBIDDEN_HEAD:
+                warnings.append(f"{sub_id}: 以「{head}」开头，确认上条字幕断点是否合理")
+    return errors, warnings
+
+
+def warn_tts_over_split(lines: list[dict]) -> list[str]:
+    warnings: list[str] = []
+    for i in range(1, len(lines)):
+        prev, curr = lines[i - 1], lines[i]
+        if line_scene(prev) != line_scene(curr):
+            continue
+        prev_id = prev.get("id", "")
+        curr_id = curr.get("id", "")
+        m_prev = re.match(r"^(.+?)([a-z]+)$", prev_id)
+        m_curr = re.match(r"^(.+?)([a-z]+)$", curr_id)
+        if m_prev and m_curr and m_prev.group(1) == m_curr.group(1):
+            warnings.append(
+                f"{prev_id}+{curr_id}: 疑似为字幕宽度拆成多段 TTS — "
+                f"应合并为一条 voice（一条 wav），字幕用 subtitle/subtitleParts 拆显示"
+            )
+            continue
+        prev_speak = tts_payload(prev)
+        curr_speak = tts_payload(curr)
+        if prev_speak == curr_speak:
+            warnings.append(
+                f"{prev_id}+{curr_id}: speak 相同却分成两条 wav — 检查是否误拆 TTS"
+            )
+    return warnings
+
+
+def validate_lines(lines: list[dict]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    max_han, vertical = load_subtitle_limits()
+    orient = "竖屏" if vertical else "横屏"
+
+    for i, item in enumerate(lines):
+        line_id = item.get("id", f"#{i}")
+        voice = voice_text(item)
+        if not voice:
+            errors.append(f"{line_id}: voice/text 为空（TTS 口播必填）")
+            continue
+
+        units = visual_units(voice)
+        if units > max_han:
+            warnings.append(
+                f"{line_id}: 口播约 {units:.1f} 单位 > {orient}字幕显示上限 {max_han} — "
+                f"TTS 保持整句一条 wav；请规划 subtitle/subtitleParts 或交给脚本自动拆上屏"
+            )
+        elif units > max_han + 8:
+            warnings.append(
+                f"{line_id}: 口播较长（{units:.1f} 单位），注意节奏；勿为字幕拆 TTS id"
+            )
+
+        parts = get_subtitle_parts(item, max_han)
+        sub_errs, sub_warns = validate_subtitle_parts(line_id, parts, max_han, orient)
+        errors.extend(sub_errs)
+        warnings.extend(sub_warns)
+
+        if re.search(r"[A-Za-z]{2,}", voice) and not item.get("speak"):
+            warnings.append(
+                f"{line_id}: 含英文/专有名词，建议加 speak 字段修正读音"
+                f"（如 OpenClaw → Open Claw）"
+            )
+
+    warnings.extend(warn_tts_over_split(lines))
+    return errors, warnings
+
+
+async def synth_line(line_id: str, speak_text: str) -> Path:
+    mp3 = OUT_DIR / f"{line_id}.mp3"
+    wav = OUT_DIR / f"{line_id}.wav"
+    communicate = edge_tts.Communicate(speak_text, VOICE, rate=RATE)
+    await communicate.save(str(mp3))
+    subprocess.check_call(
+        ["ffmpeg", "-y", "-i", str(mp3), "-ar", "44100", "-ac", "1", str(wav)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    mp3.unlink(missing_ok=True)
+    return wav
 
 
 def probe_duration(path: Path) -> float:
@@ -198,20 +342,6 @@ def probe_duration(path: Path) -> float:
         text=True,
     )
     return round(float(out.strip()), 3)
-
-
-async def synth_line(line_id: str, speak_text: str) -> Path:
-    mp3 = OUT_DIR / f"{line_id}.mp3"
-    wav = OUT_DIR / f"{line_id}.wav"
-    communicate = edge_tts.Communicate(speak_text, VOICE, rate=RATE)
-    await communicate.save(str(mp3))
-    subprocess.check_call(
-        ["ffmpeg", "-y", "-i", str(mp3), "-ar", "44100", "-ac", "1", str(wav)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    mp3.unlink(missing_ok=True)
-    return wav
 
 
 def concat_voiceover(wavs: list[Path], out_path: Path) -> None:
@@ -243,7 +373,8 @@ def concat_voiceover(wavs: list[Path], out_path: Path) -> None:
 async def main() -> None:
     lines = json.loads(LINES_PATH.read_text(encoding="utf-8"))
     max_han, vertical = load_subtitle_limits()
-    print(f"字幕上限: {max_han} 单位 ({'竖屏' if vertical else '横屏'}, meta.json)")
+    print(f"字幕显示上限: {max_han} 单位 ({'竖屏' if vertical else '横屏'}, meta.json)")
+    print("TTS 粒度: 每条 lines.json = 一个 wav（不因字幕宽度拆 id）")
 
     errors, warnings = validate_lines(lines)
     for w in warnings:
@@ -264,11 +395,14 @@ async def main() -> None:
 
     for item in lines:
         line_id = item["id"]
-        text = item["text"]
+        voice = voice_text(item)
         speak = tts_payload(item)
         scene = line_scene(item)
-        label = f"{speak}" if speak != text else text
+        subtitle_parts = get_subtitle_parts(item, max_han)
+        label = speak if speak != voice else voice
         print(f"TTS {line_id} (sc{scene}): {label}")
+        if len(subtitle_parts) > 1:
+            print(f"  字幕 {len(subtitle_parts)} 条共享本段音频: {subtitle_parts}")
         wav = await synth_line(line_id, speak)
         wavs.append(wav)
         duration = probe_duration(wav)
@@ -276,14 +410,16 @@ async def main() -> None:
         row = {
             "id": line_id,
             "scene": scene,
-            "text": text,
-            "textHash": text_hash(text),
+            "voice": voice,
+            "text": voice,  # 兼容旧脚本读 text
+            "textHash": text_hash(voice),
+            "subtitleParts": subtitle_parts,
             "src": f"audio/segments/{line_id}.wav",
             "start": round(t, 3),
             "duration": duration,
             "showEnd": show_end,
         }
-        if speak != text:
+        if speak != voice:
             row["speak"] = speak
             row["speakHash"] = text_hash(speak)
         schedule.append(row)
@@ -319,6 +455,7 @@ async def main() -> None:
     )
     print(f"\nVoiceover: {VOICEOVER} ({probe_duration(VOICEOVER)}s)")
     print(f"Total duration: {total_duration}s | hash: {voiceover_hash}")
+    print(f"TTS 条数: {len(lines)}（= wav 段数，非字幕条数）")
     if total_duration > 150 and RATE != "+18%":
         print("提示: 总时长 >150s，建议将 RATE 改为 '+18%' 后重跑本脚本")
 

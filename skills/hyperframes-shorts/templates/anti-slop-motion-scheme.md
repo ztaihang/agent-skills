@@ -89,9 +89,17 @@ tasteDials:
 
 ### 门禁 4 · Post-audit（`npm run check` 前）
 
+**先跑脚本，再人工对照 `hyperframes-zh-checklist.md` §六：**
+
+```powershell
+python scripts/verify-delivery-checklist.py   # 0 ERROR
+python scripts/verify-index-encoding.py
+```
+
 **design-motion-principles Audit 思维** + 廉价感检查：
 
-- [ ] 每镜背景有 **≥1 层 ambient 循环**（非纯静态 `#0a0a0a`）
+- [ ] **verify-delivery-checklist.py → 0 ERROR**（字体 / 字幕贴底 / `#root` 静态背景）
+- [ ] `#root` 有 gradient/网格（非纯 `#0a0a0a`）；**无**每镜 CSS infinite ambient
 - [ ] 主内容有 **入场 stagger**（非全片同一 `opacity:0,y:30`）
 - [ ] 数据/数字镜有 **count-up 或高亮 pulse**（对齐 TTS）
 - [ ] 场景转场 **≥2 种** rotate（blur / push / zoom / focus，非全程同一效果）
@@ -117,15 +125,22 @@ taste dial: 5/6/6 | design.md: ✓ | 动效层级: L0–L3 已覆盖
 > **原则：** 动效必须 **motivated**（服务层级 / 叙事 / 数据强调 / 转场），不是「有 GSAP 就乱 tween」。  
 > **原则：** **背景永远要有生命感**；**内容入场要有节奏**；**讲到数字就要动数字**。
 
-### L0 · 环境层（每镜必做 — 防「死画面」）
+### L0 · 环境层（防「死黑 PPT」— **性能优先，默认静态**）
 
-| 元素 | 做法 | 参考 |
-|------|------|------|
-| 背景 atmosphere | 2–5 个装饰层，**共享一种** slow ambient（breath / drift / pulse） | css-animations |
-| 实现 | GSAP `mt` 循环 tween 或 CSS `@keyframes` + `animation-play-state` | hyperframes seek 友好 |
-| 禁止 | 纯 flat 背景无任何 slow motion | — |
+> **教训：** 每镜复制 `.ambient` + CSS `infinite`（scan-lines / feTurbulence grain）会在 **隐藏镜头仍持续跑动画**，preview CPU 暴涨，肉眼却几乎看不出在动。**禁止这种写法。**
 
-**最低标准：** 每镜至少 **1 个** ambient 循环 + **1 个** 静态装饰（网格/暗角/ghost text）。
+| 优先级 | 做法 | 说明 |
+|--------|------|------|
+| **默认（必做）** | `#root` **静态**装饰 | gradient + 网格/暗角/vignette — **已足够**防死黑 |
+| **可选** | 全片 **1 个** 共享慢循环 | 只挂在 `#root` 下；**不要**每镜复制 |
+| **副信息** | ghost 词 / chip / overline | **静态** opacity 即可；ghost **禁止** `infinite` |
+| **禁止** | 每镜 `.ambient` + CSS `infinite` | 17 镜 = 34+ 后台循环 |
+| **禁止** | `feTurbulence` + CSS `infinite` | 用静态 PNG grain 或省略 |
+| **禁止** | 纯 flat `#0a0a0a` / `#000` 零装饰 | 仍须 `#root` gradient 或网格 |
+
+**最低标准：** `#root` 有 **≥1 层静态**背景装饰（gradient / grid / vignette）。**不强制**每镜 ambient 循环。
+
+**若用户明确要求「背景要有生命感」：** 最多 **1 个** `#root` 级慢循环（如 8s opacity breath），或 **仅当前镜** 用 GSAP `mt` 控制 `animation-play-state`（切镜 pause 非当前镜）。
 
 ### L1 · 场景入场（每镜必做 — 防「一出现就全摆好」）
 
@@ -174,12 +189,12 @@ Agent 在写 HTML 前填写：
 ```markdown
 ## Motion Plan
 
-- L0 ambient: particle-field + radial-glow（共享 sine 8s breath）
+- L0 背景: #root gradient + grid（静态）；可选 #root 单循环 radial-glow 8s
 - L1 首镜: title stagger 0.1s + 副标题 delay 0.15s
 - L2 sc3: 指标 47% count-up @ schedule s17.start；四卡逐步 glow @ s18/s19
 - L3 kinetic: sc1 钩子「纸糊」@ s3；sc5 结论 @ s42
 - L4 转场: sc1→2 push, sc2→3 blur, sc3→4 zoom, …
-- 禁止: 全片 y:30 同一 ease；禁止无 ambient 纯黑底
+- 禁止: 全片 y:30 同一 ease；禁止纯黑底；禁止每镜 feTurbulence infinite
 ```
 
 ---
@@ -190,7 +205,7 @@ Agent 在写 HTML 前填写：
 |------------------------|------------------|
 | cyan-on-dark + 玻璃 2×2 默认 | `design.md` preset + solid/outline 卡 |
 | 线框地球首镜复制粘贴 | 首镜按风格表轮换布局 |
-| 纯黑底零装饰 | L0 ambient 每层都有 |
+| 纯黑底零装饰 | `#root` 静态 gradient/网格 + L1 入场 |
 | 一出现全部元素 visibility:1 | L1 stagger 入场 |
 | 口播念数字画面静态 | L2 count-up / pulse 对齐 TTS |
 | 每句 kinetic bounce | L3 全片 2–4 处 |
