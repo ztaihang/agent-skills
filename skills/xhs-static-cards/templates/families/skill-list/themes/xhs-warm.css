@@ -1,0 +1,105 @@
+body {
+  background:
+    radial-gradient(1200px 800px at 50% -220px, #fffaf7 0%, #fff1ec 55%, #ffeae3 100%),
+    linear-gradient(180deg, #fff9f6 0%, #fff4ef 100%);
+  color: #1f2937;
+}
+.cover-badge {
+  background: #fff3ee;
+  color: #7c2d12;
+  border: 1px solid #ffd7c2;
+}
+.cover-title { color: #111827; letter-spacing: -0.02em; }
+.cover-subtitle, .cover-intro { color: #6b7280; }
+.cover-highlight {
+  background: linear-gradient(90deg, #ff6b57, #ff4d4f);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(255, 93, 80, 0.18);
+}
+.cover-divider { color: #f2b6a6; }
+.cover-grid-item {
+  background: #ffffff;
+  border: 1px solid #ffe0d1;
+  box-shadow: 0 6px 18px rgba(217, 70, 52, 0.06);
+}
+.cover-grid-num { color: #ff5a3d; }
+.cover-grid-name { color: #111827; }
+.cover-grid-tag { color: #7c2d12; }
+
+.card-num {
+  background: #fff;
+  color: #ff5a3d;
+  border: 3px solid #ff5a3d;
+  box-shadow: inset 0 0 0 6px #ffffff, 0 8px 22px rgba(217, 70, 52, 0.15);
+}
+.card-title {
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+.card-title::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 4px;
+  margin: 18px auto 0;
+  background: linear-gradient(90deg, #ff6b57, #ff4d4f);
+  border-radius: 999px;
+}
+.card-tags {
+  background: #ffffff;
+  border: 1px solid #ffe0d1;
+  box-shadow: 0 2px 8px rgba(217, 70, 52, 0.05);
+  margin-bottom: 28px;
+}
+.card-tag {
+  color: #7c2d12;
+  background: #fff4ef;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #ffe0d1;
+}
+.card-desc { color: #374151; }
+.card-points {
+  width: 860px;
+  margin: 18px auto 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.point {
+  position: relative;
+  font-size: 26px;
+  color: #1f2937;
+  padding-left: 18px;
+}
+.point::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #ff6b57, #ff4d4f);
+}
+.card-cta {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fff7f2;
+  border: 1px solid #ffd7c2;
+}
+.card-cta .cta-label {
+  font-size: 22px;
+  color: #9a3412;
+}
+.card-cta code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 22px;
+  color: #9a3412;
+}
+.card-footer { border-color: #ffe0d1; }
+.card-scenes { color: #6b7280; }
