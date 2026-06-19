@@ -154,6 +154,7 @@ variant B/C 结构见 **`templates/visual-style-guide.md` §6**。
 | 写 `brand.json` | `outroMode: off` | 完整字段 | `custom` + notes |
 | `lines.json` 片尾镜 | ❌ 无 | ✅ 有 | ✅ 有 |
 | `generate-tts.py` | 不含片尾句 | 含片尾句 | 含片尾句 |
+| `align-subtitles.py` | ✅ | ✅ | ✅ |
 | `apply-audio-schedule.mjs` | ✅ | ✅ | ✅ |
 | `apply-brand.mjs` | 跳过 | 默认 patch | 仅头像（可选） |
 | 片尾镜 HTML/GSAP | 无 / 占位 | **变体 A/B/C** | **按说明定制** |

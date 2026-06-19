@@ -5,6 +5,7 @@
 | 源 | 目标 |
 |----|------|
 | `templates/scripts/*` | `项目/scripts/` |
+| `templates/requirements-align.txt` | `项目/requirements-align.txt`（可选；或 `pip install faster-whisper`） |
 | `templates/audio/lines.json.example` | `项目/audio/lines.json`（按口播改写） |
 | `templates/assets/brand.json.example` | `项目/assets/brand.json`（无片尾则 `outroMode: off`） |
 | `templates/design.md.example` | `项目/design.md`（**必改**：YAML + **Motion Plan** + tasteDials） |
@@ -36,6 +37,6 @@
 
 流水线（**全部由 Agent 自动执行**；用户交付后只 `npm run dev`）：
 
-`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（voice 整句 + subtitle 显示）** → 写 `index.html`（**hyperframes-zh-checklist** + scene-density + L0–L4）→ `generate-tts.py`（voice 超长 WARN / subtitle ERROR）→ `apply-audio-schedule.mjs`（多 .sl 共享 wav）→ `apply-brand.mjs`（有片尾）→ **`verify-delivery-checklist.py`** → **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
+`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（voice 整句 + subtitle 显示）** → 写 `index.html`（**hyperframes-zh-checklist** + scene-density + L0–L4）→ `generate-tts.py` → **`align-subtitles.py`** → `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **`verify-delivery-checklist.py`** → **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
 
 **Studio 注意：** `npm run dev` 开着时 Studio 可能回写 `index.html` 并把中文变成 `??`。Agent 写 HTML 前先停 dev；用户勿在 Studio 画布改中文，改 `audio/lines.json` 后重跑 TTS 流水线。

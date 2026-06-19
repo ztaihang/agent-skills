@@ -19,6 +19,19 @@ html, body {
   position: relative;
 }
 
+.canvas.card-canvas {
+  justify-content: center;
+  padding: 64px;
+}
+
+.card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 920px;
+}
+
 .cover-badge {
   font-size: 26px;
   font-weight: 600;
@@ -130,7 +143,6 @@ html, body {
   line-height: 1.75;
   text-align: center;
   max-width: 860px;
-  margin-bottom: auto;
   padding: 0 16px;
 }
 
@@ -145,13 +157,5 @@ html, body {
 .card-scenes {
   font-size: 26px;
   line-height: 1.6;
-  margin-bottom: 36px;
   opacity: 0.85;
-}
-
-.card-page {
-  font-size: 28px;
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  opacity: 0.55;
 }

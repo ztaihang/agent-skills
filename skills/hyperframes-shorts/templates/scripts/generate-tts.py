@@ -456,6 +456,7 @@ async def main() -> None:
     print(f"\nVoiceover: {VOICEOVER} ({probe_duration(VOICEOVER)}s)")
     print(f"Total duration: {total_duration}s | hash: {voiceover_hash}")
     print(f"TTS 条数: {len(lines)}（= wav 段数，非字幕条数）")
+    print("下一步: python scripts/align-subtitles.py  （Whisper 词级时间戳 → audio/alignments.json）")
     if total_duration > 150 and RATE != "+18%":
         print("提示: 总时长 >150s，建议将 RATE 改为 '+18%' 后重跑本脚本")
 

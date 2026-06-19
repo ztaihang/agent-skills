@@ -14,4 +14,4 @@
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
 
-请：自动跑完全部环境与构建（含 design.md、TTS、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+请：自动跑完全部环境与构建（含 design.md、TTS、**align-subtitles**、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。

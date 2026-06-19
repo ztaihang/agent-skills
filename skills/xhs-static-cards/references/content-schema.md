@@ -26,18 +26,23 @@
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | `type` | ✅ | 固定 `skill-list` |
-| `theme` | | `soft-pink`（默认）\| `clean-white` \| `tool-slate` |
+| `theme` | | `soft-pink`（默认）\| `clean-white` \| `tool-slate` \| `dark-neon` |
 | `title` | ✅ | 封面主标题 |
 | `subtitle` | ✅ | 封面副标题 |
 | `intro` | | 封面下方短引言 |
 | `badge` | | 顶栏小标签，默认 `AI 工具推荐` |
+| `badgeEmoji` | | 顶栏标签前 emoji，默认无（可设 `"🤖 "` 等） |
+| `divider` | | 封面清单分隔文案，默认 `—— 必装技能清单 ——` |
+| `scenesLabel` | | 卡片底部标签文案，默认 `适用场景` |
 | `highlight` | | 封面强调块，如 `TOP 9` |
 | `items` | ✅ | 至少 1 项 |
 | `items[].num` | ✅ | 序号 |
 | `items[].name` | ✅ | Skill 英文名或主标题 |
 | `items[].tags` | | 1–3 个标签 |
 | `items[].desc` | ✅ | 1–2 句描述 |
-| `items[].scenes` | | 适用场景，逗号分隔 |
+| `items[].scenes` | | 卡片底部补充信息（标签由 `scenesLabel` 控制） |
+
+卡片页内容垂直居中，不显示页码（如 `1 / 5`）。
 
 ## vibecoding（P3 占位）
 

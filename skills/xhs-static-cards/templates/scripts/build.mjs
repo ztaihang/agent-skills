@@ -10,7 +10,7 @@ const ROOT = process.cwd();
 const PREVIEW = path.join(ROOT, "preview");
 const FAMILY = path.join(ROOT, "families", "skill-list");
 
-const THEMES = new Set(["soft-pink", "clean-white", "tool-slate"]);
+const THEMES = new Set(["soft-pink", "clean-white", "tool-slate", "dark-neon"]);
 
 function esc(s) {
   return String(s ?? "")
@@ -55,6 +55,8 @@ ${body}
 function renderCover(content, css) {
   const items = content.items ?? [];
   const circled = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
+  const badgePrefix = content.badgeEmoji ?? "";
+  const divider = content.divider ?? "—— 必装技能清单 ——";
   const gridFixed = items
     .map((item) => {
       const tag = (item.tags && item.tags[0]) || "";
@@ -68,30 +70,31 @@ function renderCover(content, css) {
     .join("\n");
 
   const body = `<div class="canvas">
-  <div class="cover-badge">🤖 ${esc(content.badge || "AI 工具推荐")}</div>
+  <div class="cover-badge">${badgePrefix}${esc(content.badge || "AI 工具推荐")}</div>
   <h1 class="cover-title">${esc(content.title)}</h1>
   <p class="cover-subtitle">${esc(content.subtitle)}</p>
   ${content.intro ? `<p class="cover-intro">${esc(content.intro)}</p>` : ""}
   ${content.highlight ? `<div class="cover-highlight">${esc(content.highlight)}</div>` : ""}
-  <div class="cover-divider">—— 必装技能清单 ——</div>
+  <div class="cover-divider">${esc(divider)}</div>
   <div class="cover-grid">${gridFixed}</div>
 </div>`;
 
   return wrapPage(content.title + " · 封面", css, body);
 }
 
-function renderCard(item, index, total, css) {
+function renderCard(item, index, total, css, scenesLabel = "适用场景") {
   const tags = (item.tags || [])
     .map((t) => `<span class="card-tag">${esc(t)}</span>`)
     .join("\n    ");
-  const body = `<div class="canvas">
-  <div class="card-num">${item.num}</div>
-  <h1 class="card-title">${esc(item.name)}</h1>
-  <div class="card-tags">${tags}</div>
-  <p class="card-desc">${esc(item.desc)}</p>
-  <div class="card-footer">
-    ${item.scenes ? `<p class="card-scenes">💡 适用场景：${esc(item.scenes)}</p>` : ""}
-    <p class="card-page">${index} / ${total}</p>
+  const body = `<div class="canvas card-canvas">
+  <div class="card-inner">
+    <div class="card-num">${item.num}</div>
+    <h1 class="card-title">${esc(item.name)}</h1>
+    <div class="card-tags">${tags}</div>
+    <p class="card-desc">${esc(item.desc)}</p>
+    ${item.scenes ? `<div class="card-footer">
+      <p class="card-scenes">💡 ${esc(scenesLabel)}：${esc(item.scenes)}</p>
+    </div>` : ""}
   </div>
 </div>`;
   return wrapPage(item.name, css, body);
@@ -154,12 +157,13 @@ async function main() {
 
   const cardFiles = [];
   const total = content.items.length;
+  const scenesLabel = content.scenesLabel ?? "适用场景";
   for (let i = 0; i < total; i++) {
     const file = `card-${padNum(i + 1)}.html`;
     cardFiles.push(file);
     await fs.writeFile(
       path.join(PREVIEW, file),
-      renderCard(content.items[i], i + 1, total, css),
+      renderCard(content.items[i], i + 1, total, css, scenesLabel),
       "utf8"
     );
   }

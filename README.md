@@ -93,7 +93,7 @@ npx skills add wondelai/skills@web-typography
 |------|------|
 | FFmpeg | 必须（音视频处理） |
 | Node.js | ≥ 22 |
-| Python + edge-tts | 中文配音：`pip install edge-tts` |
+| Python + edge-tts + faster-whisper | 中文配音与字幕对齐：`pip install edge-tts faster-whisper` |
 
 ### 4. 在 Agent 里使用
 
@@ -101,13 +101,13 @@ npx skills add wondelai/skills@web-typography
 
 1. 新建对话，附加或 `@hyperframes-shorts`
 2. 复制 [提示词模板](skills/hyperframes-shorts/examples/prompt-template.md)，填好 **项目路径** 和 **口播原文**
-3. Agent 会自动完成：脚手架、TTS、时间轴、`npm run check`
+3. Agent 会自动完成：脚手架、TTS、**align-subtitles**、时间轴、`npm run check`
 
 **Trae（Vibe Coding / SOLO 模式）**
 
 1. 在项目根目录安装 skill（见上方 `-a trae` 命令）
 2. 新建对话，输入 `/hyperframes-shorts`，或直接粘贴 [提示词模板](skills/hyperframes-shorts/examples/prompt-template.md) 的内容
-3. Agent 同样会自动完成脚手架、TTS、时间轴、`npm run check`
+3. Agent 同样会自动完成脚手架、TTS、**align-subtitles**、时间轴、`npm run check`
 
 **预览（所有 runtime 通用）**
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Agent-only: post-build delivery checklist for Chinese HyperFrames shorts.
 
-Run after build-index.py + apply-audio-schedule.mjs, before npm run check.
+Run after build-index.py + align-subtitles.py + apply-audio-schedule.mjs, before npm run check.
 See templates/hyperframes-zh-checklist.md for full rules.
 
 Exit 0 = no ERROR (WARN may remain). Exit 1 = fix required before delivery.
@@ -253,6 +253,43 @@ def check_tts_granularity() -> None:
             )
 
 
+def check_alignments() -> None:
+    schedule_path = ROOT / "audio" / "schedule.json"
+    align_path = ROOT / "audio" / "alignments.json"
+    if not schedule_path.is_file():
+        return
+    if not align_path.is_file():
+        err("audio/alignments.json 缺失 — 须先运行 python scripts/align-subtitles.py")
+        return
+    try:
+        sched = json.loads(schedule_path.read_text(encoding="utf-8"))
+        align = json.loads(align_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        err(f"alignments/schedule JSON 解析失败: {e}")
+        return
+    sh = sched.get("voiceoverHash")
+    ah = align.get("voiceoverHash")
+    if sh and ah and sh != ah:
+        err(
+            f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 align-subtitles.py"
+        )
+    lines = align.get("lines") or {}
+    for row in sched.get("schedule") or []:
+        lid = row.get("id")
+        parts = row.get("subtitleParts") or []
+        if len(parts) <= 1:
+            continue
+        if lid not in lines:
+            warn(f"{lid}: alignments.json 无此行 — 字幕可能 fallback 估算")
+            continue
+        ar = lines[lid]
+        if len(ar.get("parts") or []) != len(parts):
+            warn(f"{lid}: alignments 条数与 subtitleParts 不一致")
+        ratio = ar.get("matchRatio")
+        if isinstance(ratio, (int, float)) and ratio < 0.55:
+            warn(f"{lid}: matchRatio={ratio:.2f} 偏低 — 建议听检该镜字幕")
+
+
 def main() -> int:
     text = read_html()
     if not text:
@@ -271,6 +308,7 @@ def main() -> int:
     check_rounded_surfaces(text)
     check_build_source(text)
     check_tts_granularity()
+    check_alignments()
 
     return _report()
 

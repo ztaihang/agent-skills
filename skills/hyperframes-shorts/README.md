@@ -1,6 +1,6 @@
 # hyperframes-shorts
 
-中文 HyperFrames 短视频全流程 Agent Skill：**口播拆镜 → 视觉规划 → Edge TTS → 时间轴 → 校验**；用户只需 `npm run dev` 预览。
+中文 HyperFrames 短视频全流程 Agent Skill：**口播拆镜 → 视觉规划 → Edge TTS → Whisper 字幕对齐 → 时间轴 → 校验**；用户只需 `npm run dev` 预览。
 
 ---
 
@@ -40,7 +40,7 @@ npx skills add kylezantos/design-motion-principles@design-motion-principles
 npx skills add wondelai/skills@web-typography
 ```
 
-系统：FFmpeg、Node.js ≥ 22、Python 3 + `pip install edge-tts`
+系统：FFmpeg、Node.js ≥ 22、Python 3 + `pip install edge-tts faster-whisper`（字幕词级对齐用，见 `templates/requirements-align.txt`）
 
 **反 AI 味 + 有质感动效：** [templates/anti-slop-motion-scheme.md](templates/anti-slop-motion-scheme.md)
 
@@ -82,8 +82,9 @@ npm run dev
 - 写 HTML 前**必读** taste-skill + anti-slop 方案 + css-animations / design-motion-principles / web-typography
 - **镜内防太空**：短镜须副信息 + `#root` 静态装饰（`scene-density-guide.md`；禁止每镜 infinite ambient）
 - **口播 / 字幕分离**：`voice` 整句 TTS；`subtitle` 仅上屏；禁止为 maxHan 拆多 wav
-- Edge TTS 单轨 `voiceover.wav` + 字幕对齐
+- **字幕对齐**：TTS 后 **`align-subtitles.py`**（faster-whisper 词级时间戳 → `audio/alignments.json`），再 `apply-audio-schedule.mjs`
+- Edge TTS 单轨 `voiceover.wav` + 字幕与口播同步
 - 品牌片尾：`off` / 变体 A·B·C / 自定义
-- Agent 自动 TTS、时间轴、`npm run check`；**不自动 render**
+- Agent 自动 TTS → **align-subtitles** → 时间轴、`npm run check`；**不自动 render**
 - **交付自检**：`verify-delivery-checklist.py` + `verify-index-encoding.py` + `npm run check`（0 error）
 - **版式硬性规则**：字幕单行、文字不重叠、**本地中文字体**、禁止 AI 风 emoji/表情包插图

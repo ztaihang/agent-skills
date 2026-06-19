@@ -78,7 +78,7 @@
 
 ## 六、生成完毕 · Agent 强制自检（按顺序）
 
-**全部改完并跑完 TTS / apply-audio-schedule 之后，Agent 必须：**
+**全部改完并跑完 TTS → align-subtitles → apply-audio-schedule 之后，Agent 必须：**
 
 ```powershell
 cd "<项目路径>"
@@ -104,7 +104,7 @@ npm run check
 - [ ] 中文在浏览器/inspect 中无 `??`、无裁切 ellipsis 长期遮挡
 - [ ] 关键句口播与字幕一致（至少 spot-check 2 条）
 
-**任一项 FAIL：** 回到 `build-index.py` / CSS 修改 → 重新 `build-index.py` → apply-audio-schedule → 再从步骤 1 跑。
+**任一项 FAIL：** 回到 `build-index.py` / CSS 修改 → 重新 `build-index.py` → **align-subtitles**（若 TTS 变了）→ apply-audio-schedule → 再从步骤 1 跑。
 
 ---
 
@@ -115,6 +115,7 @@ npm run check
 | dev 卡住 + 字体 WARN | 系统字体 / Google Fonts | 本地 `@font-face` + 删回退 |
 | 字幕挡画面 | 内容区太低 / padding-bottom 不足 | 提高安全区或上移对比组件 |
 | 背景仍像黑屏 | 只有 flat 色、无 gradient | 加 `#root` gradient + 网格/暗角（静态） |
+| 长句字幕偏快/偏慢 | 未跑 `align-subtitles.py` 或 alignments 过期 | 重跑 TTS → **align-subtitles** → apply-audio-schedule |
 | preview CPU 高 | 每镜 `.ambient` + CSS infinite / feTurbulence grain | 删 per-scene ambient；保留 `#root` 静态装饰 |
 | 全是方框 | 未实现 design.md rounded | 统一 `--r-md` / pill chip |
 | inspect clipped_text | 字幕 line-height 过小 | `min-height` + `line-height ≥ 1.3` |

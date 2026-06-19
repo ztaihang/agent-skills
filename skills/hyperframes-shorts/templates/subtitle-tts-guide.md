@@ -59,6 +59,7 @@
 |------|------|------|
 | `voice` / `speak` | **保留含句末** | Edge TTS 靠标点控制停顿 |
 | `subtitle` / `subtitleParts` | 上屏无句末标点 | `apply-audio-schedule.mjs` 自动 strip 末尾 `，。！？：；、` |
+| `voice` 弯引号 `“”` | TTS 保留 | 字幕若省略引号（如 共享状态 无引号），对齐脚本会忽略引号；**推荐字幕不写引号、与口播语义一致** |
 | 句中标点 | 字幕可保留 | 如「因此，全球」— 只 strip **末尾** |
 
 ---
@@ -72,7 +73,7 @@
 
 ### 自动拆上屏（无 subtitle 时）
 
-`generate-tts.py` / `apply-audio-schedule.mjs` 会按逗号/句号把 `voice` 拆成多条 `.sl`（如 `s2`、`s2_2`、`s2_3`），**共享同一段音频时间轴**，按字数权重切分子段时间。
+`generate-tts.py` 把 `voice` 整句合成一条 wav；`align-subtitles.py` 用 **faster-whisper 词级时间戳** 在 wav 内定位每条 `subtitleParts` 的起止，写入 `audio/alignments.json`；`apply-audio-schedule.mjs` 优先读对齐结果写多条 `.sl`（如 `s2`、`s2_2`），**共享同一段 wav**。无 `alignments.json` 时才 fallback 估算（长句易偏，不推荐交付）。
 
 ### 显式规划字幕（推荐长句）
 
@@ -192,12 +193,16 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 |------|------|
 | 3d 写 lines.json | 先写 `voice` 整句；`subtitle` 单独规划或留空自动拆 |
 | 5 TTS | 每行一个 wav（行数 = 口播句数） |
-| 6 时间轴 | 口播 1 轨；字幕 N 条共享该段 `[start, showEnd]` |
+| **5b 强制对齐** | `align-subtitles.py`：每段 wav + `speak`/`voice` → `audio/alignments.json`（**字幕时间戳来源**） |
+| 6 时间轴 | 口播 1 轨；字幕 N 条共享该段 `[start, showEnd]`，时间来自 alignments |
 
 ```bash
-python scripts/generate-tts.py   # 校验 subtitle；voice 超长仅 WARN
-node scripts/apply-audio-schedule.mjs  # 按 subtitleParts 写多条 .sl + GSAP
+python scripts/generate-tts.py        # 校验 subtitle；voice 超长仅 WARN
+python scripts/align-subtitles.py     # 必须：词级时间戳对齐 subtitleParts
+node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 ```
+
+> **时间戳不在 TTS 里生成**：Edge TTS 只产出 wav；**对齐步骤**才从已生成的 wav 提取每个词何时说出，并映射到 `subtitleParts`。
 
 ---
 
@@ -209,7 +214,9 @@ node scripts/apply-audio-schedule.mjs  # 按 subtitleParts 写多条 .sl + GSAP
 - [ ] **`voice` 保留 TTS 标点**；`.sl` 无句末标点
 - [ ] 多音字/专有名词已查，`speak` 按 id 填写
 - [ ] `generate-tts.py` **0 ERROR**（voice 超长 WARN 可接受）
-- [ ] 戴耳机：同 id 内多字幕切换无段间硬切（因共享 wav）
+- [ ] `audio/alignments.json` 存在且 `voiceoverHash` 与 `schedule.json` 一致
+- [ ] 戴耳机：同 id 内多字幕切换与口播同步（长句尤其 spot-check）
+- [ ] `matchRatio` 过低（如 <0.55）的行已听检或改 `speak`/口播稿
 - [ ] 截帧：字幕无第二行、无长期 ellipsis
 
 ---

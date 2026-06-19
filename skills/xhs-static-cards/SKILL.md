@@ -116,7 +116,7 @@ DESIGN_VARIANCE 5 | MOTION_INTENSITY 1 | VISUAL_DENSITY 5
 | 多个 ①②③ / Top N / Skill 名列表 | `skill-list` | `families/skill-list/` | ✅ P1 |
 | 步骤 / 流程 / Cursor·Vibecoding 教程 | `vibecoding` | `families/vibecoding/` | 🔜 P3 占位 |
 
-同族内切换 **theme**：`soft-pink` | `clean-white` | `tool-slate`（见 `references/theme-variants.md`）。
+同族内切换 **theme**：`soft-pink` | `clean-white` | `tool-slate` | `dark-neon`（见 `references/theme-variants.md`）。
 
 ---
 

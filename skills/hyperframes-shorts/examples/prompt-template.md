@@ -1,6 +1,6 @@
 # HyperFrames 短视频 · 用户提示词模板
 
-复制对应区块发给 Agent 即可。Agent 自动跑 TTS、时间轴、`npm run check`；**你只需预览，确认后再导出**。
+复制对应区块发给 Agent 即可。Agent 自动跑 TTS → **align-subtitles** → 时间轴、`npm run check`；**你只需预览，确认后再导出**。
 
 **项目路径**：你要存放 HyperFrames 工程的文件夹（任意本地路径），例如 `~/Videos/项目名` 或 `C:\Users\你\Videos\项目名`。下文 `<项目路径>` 均指此处填写的路径。
 
@@ -77,7 +77,7 @@ taste 参数：（可选，短视频默认 5/6/6）
 片尾口播全文：
 掌握 AI 实战，下班不留遗憾。关注浣熊不加班，我们下期见！
 
-请：自动跑完全部环境与构建（含 taste-skill pre-flight、design.md + Motion Plan、TTS、时间轴、Post-audit、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+请：自动跑完全部环境与构建（含 taste-skill pre-flight、design.md + Motion Plan、TTS、**align-subtitles**、时间轴、Post-audit、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
 
 硬性版式（必须遵守）：
 - 口播稿与上屏文案请分开提供；TTS 严格按口播稿整句生成，**禁止为字幕单行上限拆分 TTS**
@@ -128,7 +128,7 @@ taste 参数：（可选，短视频默认 5/6/6）
 口播原文：
 （全文）
 
-请：自动跑完全部环境与构建（含 design.md、TTS、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
+请：自动跑完全部环境与构建（含 design.md、TTS、**align-subtitles**、时间轴、npm run check），我只需手动 npm run dev 预览；不要自动导出 MP4。
 ```
 
 不写【品牌片尾】块 → `outroMode: off`，**完全不生成片尾**。
