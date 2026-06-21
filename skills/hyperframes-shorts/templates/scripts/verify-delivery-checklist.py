@@ -253,6 +253,54 @@ def check_tts_granularity() -> None:
             )
 
 
+def check_subtitle_voice_substrings() -> None:
+    """ERROR when subtitleParts are rewritten summaries (breaks Whisper align)."""
+    if not LINES.exists():
+        return
+    try:
+        lines = json.loads(LINES.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+    if not isinstance(lines, list):
+        return
+
+    def norm(s: str) -> str:
+        return re.sub(
+            r'[\s，。！？：；、\u201c\u201d\u2018\u2019「」『』"\']',
+            "",
+            s,
+        ).lower()
+
+    def strip_tail(s: str) -> str:
+        return re.sub(r"[，。！？：；、]+$", "", s.strip())
+
+    for item in lines:
+        line_id = item.get("id", "?")
+        voice = (item.get("voice") or item.get("text") or "").strip()
+        if not voice:
+            continue
+        parts = item.get("subtitleParts") or item.get("subtitle") or []
+        if isinstance(parts, str):
+            parts = [parts]
+        if not parts:
+            continue
+        vn = norm(voice)
+        pos = 0
+        for j, part in enumerate(parts):
+            sub_id = line_id if j == 0 else f"{line_id}_sub{j + 1}"
+            pn = norm(strip_tail(str(part)))
+            if not pn:
+                continue
+            idx = vn.find(pn, pos)
+            if idx < 0:
+                err(
+                    f"lines.json {sub_id}: 字幕不是 voice 连续子串 — "
+                    f"禁止缩写/改写（见 subtitle-tts-guide.md §1.1）"
+                )
+                break
+            pos = idx + len(pn)
+
+
 def check_alignments() -> None:
     schedule_path = ROOT / "audio" / "schedule.json"
     align_path = ROOT / "audio" / "alignments.json"
@@ -308,6 +356,7 @@ def main() -> int:
     check_rounded_surfaces(text)
     check_build_source(text)
     check_tts_granularity()
+    check_subtitle_voice_substrings()
     check_alignments()
 
     return _report()

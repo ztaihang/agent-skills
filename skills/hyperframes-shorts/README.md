@@ -7,7 +7,17 @@
 ## 项目路径
 
 提示词里的 **项目路径** = 你希望存放 HyperFrames 工程的文件夹（任意本地路径，与 skill 安装位置无关）。  
-示例：`~/Videos/my-topic`、`C:\Users\你\Videos\my-topic`
+示例：`F:\myvideos\codex-intro`、`~/Videos/my-topic`
+
+## 本机 Skill 源码（开发用）
+
+| 路径 | 说明 |
+|------|------|
+| `F:\myvideos\agent-skills\skills\hyperframes-shorts\` | **本机源码**（改规范、改 templates/scripts 在这里） |
+| `%USERPROFILE%\.agents\skills\hyperframes-shorts\` | Agent 运行时读取（由源码同步/安装） |
+
+改 skill 规范或模板脚本 → 编辑 **F 盘源码** → 再同步到 `~/.agents/skills/`（或 `npx skills add`）。  
+已有视频项目须 **重新复制** `templates/scripts/` 三件套到项目，或手动 merge `align-subtitles.py` / `generate-tts.py` 更新。
 
 ---
 

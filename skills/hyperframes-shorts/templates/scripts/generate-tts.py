@@ -109,6 +109,47 @@ def strip_sub_punct(text: str) -> str:
     return re.sub(r"[，。！？：；、]+$", "", text.strip())
 
 
+def norm_for_substring(text: str) -> str:
+    """Loose normalize for voice/subtitle substring checks (ignore punct/quotes/spaces)."""
+    return re.sub(
+        r'[\s，。！？：；、\u201c\u201d\u2018\u2019「」『』"\']',
+        "",
+        text,
+    ).lower()
+
+
+def validate_subtitle_voice_substrings(line_id: str, voice: str, parts: list[str]) -> list[str]:
+    """ERROR when subtitle parts are not ordered contiguous substrings of voice."""
+    errors: list[str] = []
+    if not parts or len(parts) <= 1 and parts == [strip_sub_punct(voice)]:
+        return errors
+    vn = norm_for_substring(voice)
+    if not vn:
+        return errors
+    pos = 0
+    for j, part in enumerate(parts):
+        sub_id = line_id if j == 0 else f"{line_id}_sub{j + 1}"
+        pn = norm_for_substring(strip_sub_punct(part))
+        if not pn:
+            continue
+        idx = vn.find(pn, pos)
+        if idx < 0:
+            snippet = part if len(part) <= 28 else part[:28] + "…"
+            errors.append(
+                f"{sub_id}: 字幕不是 voice 连续子串 — "
+                f"「{snippet}」无法在口播中找到（禁止缩写/改写，见 subtitle-tts-guide.md §1.1）"
+            )
+            continue
+        pos = idx + len(pn)
+    covered = norm_for_substring("".join(strip_sub_punct(p) for p in parts))
+    if covered and len(covered) < len(vn) * 0.85:
+        errors.append(
+            f"{line_id}: subtitle 合计仅覆盖口播约 {len(covered)}/{len(vn)} 字 — "
+            f"须覆盖整句 voice 或删除手写 subtitle 交给脚本自动拆"
+        )
+    return errors
+
+
 def voice_text(item: dict) -> str:
     """TTS 口播原文：voice 优先，兼容旧字段 text。"""
     return (item.get("voice") or item.get("text") or "").strip()
@@ -301,6 +342,7 @@ def validate_lines(lines: list[dict]) -> tuple[list[str], list[str]]:
         parts = get_subtitle_parts(item, max_han)
         sub_errs, sub_warns = validate_subtitle_parts(line_id, parts, max_han, orient)
         errors.extend(sub_errs)
+        errors.extend(validate_subtitle_voice_substrings(line_id, voice, parts))
         warnings.extend(sub_warns)
 
         if re.search(r"[A-Za-z]{2,}", voice) and not item.get("speak"):

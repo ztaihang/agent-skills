@@ -7,7 +7,7 @@ description: 小红书静态图文卡片工作流（1080×1440，3:4）。将用
 
 本 Skill 用于在**用户指定的项目路径**下构建「文案 → HTML 预览 → 导出 PNG」工程。
 
-- **Skill 源码仓库**：`D:\Projects\agent-skills\skills\xhs-static-cards\`（或 `ztaihang/agent-skills`）
+- **Skill 源码仓库（本机）**：`F:\myvideos\agent-skills\skills\xhs-static-cards\`（或 GitHub `ztaihang/agent-skills`）
 - **本地安装路径**（Agent 读取）：`~/.agents/skills/xhs-static-cards/` 或 `~/.cursor/skills/xhs-static-cards/`
 - **卡片工程路径**：用户每次指定，与 skill 安装目录**无关**
 
@@ -39,12 +39,12 @@ description: 小红书静态图文卡片工作流（1080×1440，3:4）。将用
 |------|------|
 | `~/.agents/skills/xhs-static-cards/SKILL.md` | 推荐（与 hyperframes 等同级） |
 | `~/.cursor/skills/xhs-static-cards/SKILL.md` | Cursor 用户 |
-| 仓库 `D:\Projects\agent-skills\skills\xhs-static-cards\SKILL.md` | 开发副本 |
+| 仓库 `F:\myvideos\agent-skills\skills\xhs-static-cards\SKILL.md` | 本机开发副本 |
 
 **若均不存在**，停止并提示：
 
 ```powershell
-Copy-Item -Recurse "D:\Projects\agent-skills\skills\xhs-static-cards" "$env:USERPROFILE\.agents\skills\xhs-static-cards"
+Copy-Item -Recurse "F:\myvideos\agent-skills\skills\xhs-static-cards" "$env:USERPROFILE\.agents\skills\xhs-static-cards"
 # 或
 npx skills add ztaihang/agent-skills@xhs-static-cards -g -y
 ```

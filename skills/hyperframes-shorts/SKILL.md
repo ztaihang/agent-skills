@@ -41,7 +41,7 @@ description: HyperFrames 中文短视频视觉与版式预处理规范（抖音/
 | 3 | 资源准备 | 头像下载→`assets/avatar.png`；FFmpeg 生成 `bgm.mp3`、`sfx_*.mp3` |
 | 3b | **视觉规划** | 读 taste-skill + `anti-slop-motion-scheme.md` + `visual-style-guide.md` + **`scene-density-guide.md`** + 三前端 skill；写 **`design.md`**（含 Motion Plan + tasteDials）；定首镜布局与片尾变体 A/B/C |
 | 3c | **Pre-flight** | 对照 anti-slop 门禁 2 自检；**不通过禁止进入步骤 4** |
-| 3d | **口播→lines.json** | 读 **`subtitle-tts-guide.md`**：`voice` 整句 TTS、`subtitle` 仅上屏；`speak` 按 id 纠音；**禁止为字幕宽度拆 TTS id** |
+| 3d | **口播→lines.json** | 读 **`subtitle-tts-guide.md`**：`voice` 整句 TTS；**`subtitleParts` 必须是 voice 连续子串**（禁止缩写）；`speak` 按 id 纠音；**禁止为字幕宽度拆 TTS id** |
 | 4 | 拆镜 + HTML | 读 **`hyperframes-zh-checklist.md` §一–五**；`index.html`：严格按 `design.md` + **scene-density 每镜 5 项**；**fonts/ + @font-face**；实现 **L0–L4 动效**；**`.sl` 单行 CSS + 拆条**；GSAP `mt`、字幕、音轨占位 |
 | 5 | TTS | `python scripts/generate-tts.py` → `audio/segments/*.wav` + `schedule.json` |
 | **5b** | **字幕强制对齐** | `python scripts/align-subtitles.py` → `audio/alignments.json`（**从 wav 提取词级时间戳**，非 TTS 内嵌） |
@@ -539,7 +539,7 @@ node scripts/apply-audio-schedule.mjs
 - **`voice`（TTS 口播）**：整句一条 wav；**保留标点**含句末 `。！？，`；**禁止**为字幕宽度拆 id
 - **`text`**：兼容旧稿，等同 `voice`；新稿优先写 `voice`
 - **`speak`**：可选，仅 TTS；用户读音表须 **按 id 整行** 填写，禁止全局替换
-- **`subtitle` / `subtitleParts`**：仅底部上屏；可短于口播；超长只在逗号/句号/完整子句处拆 **显示**
+- **`subtitle` / `subtitleParts`**：底部上屏；**必须是 `voice` 的连续子串**（只拆单行宽度，禁止缩写/改写）；超长只在逗号/句号/完整子句处拆 **显示**；不确定则留空由脚本自动拆
 - **无 subtitle 时**：脚本从 `voice` 自动按标点拆多条 `.sl`（如 `s2`、`s2_2`），**共享同一段 wav**
 - **`align-subtitles.py`**：**必须**在 TTS 后运行；用 faster-whisper 对每段 wav 做词级时间戳，写入 `audio/alignments.json`
 - **`apply-audio-schedule.mjs`**：**优先**读 `alignments.json` 写字幕 GSAP；缺失或 hash 过期才 fallback 估算
@@ -558,7 +558,7 @@ node scripts/apply-audio-schedule.mjs
 改任意一条字幕文案时，**必须按顺序做完并试听**：
 
 1. 改 `audio/lines.json` 对应 `id` 的 `voice`（及 `subtitle` / `speak` 若需要）
-2. 跑 `python scripts/generate-tts.py`（会写入 `schedule.json` 的 `textHash`）
+2. 跑 `python scripts/generate-tts.py`（校验 subtitle 为 voice 子串；写入 `schedule.json`）
 3. 跑 `python scripts/align-subtitles.py`（重算 `alignments.json`）
 4. 跑 `node scripts/apply-audio-schedule.mjs`（同步字幕 HTML）
 5. **Ctrl+C 重启** `npm run dev`，浏览器硬刷新
@@ -766,7 +766,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 - [ ] **已读 `scene-density-guide.md`，短镜有副信息 + `#root` 静态装饰（非空镜）**？
 - [ ] **overline / chip 默认中文**（无 COMPACT 类装饰英文）？
 - [ ] **`voice` 整句 TTS**；未为字幕宽度拆 s2a/s2b 式多 wav？
-- [ ] **`subtitle` 显示层** 按 `subtitle-tts-guide.md`；generate-tts 校验 0 ERROR？
+- [ ] **`subtitle` 为 `voice` 连续子串**（见 `subtitle-tts-guide.md` §1.1）；`generate-tts.py` 0 ERROR？
 - [ ] **多音字/英文/专有名词已查，`speak` 已填或 notes 说明**？
 - [ ] **每条底部字幕单行**（无 stupid 断句、无长期 ellipsis）？
 - [ ] **同场景文字无重叠**（标题/卡片/金句/装饰互不遮挡）？

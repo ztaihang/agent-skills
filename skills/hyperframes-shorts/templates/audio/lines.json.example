@@ -15,7 +15,7 @@
       "这些极具含金量的开源工具",
       "迟早能让你的效率翻倍"
     ],
-    "notes": "长句：TTS 整句一条；subtitle 三条共享 s2.wav 时间轴"
+    "notes": "长句：TTS 整句一条；subtitle 三条均为 voice 连续子串，共享 s2.wav"
   },
   {
     "id": "s3",

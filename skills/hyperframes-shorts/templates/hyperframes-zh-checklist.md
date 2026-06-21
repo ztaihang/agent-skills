@@ -34,7 +34,7 @@
 | S3 | **纯字 + 描边** | 禁止字幕容器 `border` / `background` / `backdrop-filter` |
 | S4 | **弹幕可读** | `font-weight: 700`；`text-shadow` 双层黑色描边 + 轻外晕 |
 | S5 | **字号** | 横屏 ≥ 56px（推荐 60px）；竖屏 ≥ 52px |
-| S6 | **与口播同步** | 字幕来自 `subtitle`/`subtitleParts` 或 `voice` 派生；一条 wav 可对应多条 `.sl`；改字必重跑 TTS |
+| S6 | **与口播同步** | 字幕 = `voice` **连续子串**（§1.1）；一条 wav 可多条 `.sl`；改 voice/speak/subtitle **必**重跑 TTS 三件套 |
 
 **上屏副信息（overline / chip）：** 默认 **中文**；英文仅限产品名、Skill 名、口播必须术语。禁止 `COMPACT` / `PAIN POINT` 等装饰英文标签（见 `scene-density-guide.md`）。
 
@@ -115,7 +115,7 @@ npm run check
 | dev 卡住 + 字体 WARN | 系统字体 / Google Fonts | 本地 `@font-face` + 删回退 |
 | 字幕挡画面 | 内容区太低 / padding-bottom 不足 | 提高安全区或上移对比组件 |
 | 背景仍像黑屏 | 只有 flat 色、无 gradient | 加 `#root` gradient + 网格/暗角（静态） |
-| 长句字幕偏快/偏慢 | 未跑 `align-subtitles.py` 或 alignments 过期 | 重跑 TTS → **align-subtitles** → apply-audio-schedule |
+| 长句字幕偏快/偏慢 / 字与口播不一致 | subtitle 缩写改写或 alignments 过期 | 改 lines.json 为 voice 子串 → 重跑 TTS → **align-subtitles** → apply |
 | preview CPU 高 | 每镜 `.ambient` + CSS infinite / feTurbulence grain | 删 per-scene ambient；保留 `#root` 静态装饰 |
 | 全是方框 | 未实现 design.md rounded | 统一 `--r-md` / pill chip |
 | inspect clipped_text | 字幕 line-height 过小 | `min-height` + `line-height ≥ 1.3` |

@@ -82,7 +82,7 @@ taste 参数：（可选，短视频默认 5/6/6）
 硬性版式（必须遵守）：
 - 口播稿与上屏文案请分开提供；TTS 严格按口播稿整句生成，**禁止为字幕单行上限拆分 TTS**
 - 底部字幕每条永远单行；超长只在逗号/句号处拆 **显示**（subtitle），不拆配音 wav
-- lines.json：**voice** 整句 TTS；**subtitle** 仅上屏；**speak** 按 id 纠音，禁止全局替换
+- lines.json：**voice** 整句 TTS；**subtitle/subtitleParts 必须是 voice 连续子串**（禁止缩写）；**speak** 按 id 纠音，禁止全局替换
 - TTS 保留标点（含句末）；上屏字幕不要句末标点（脚本自动处理）
 - 多音字、英文、专有名词：`speak` 纠 TTS 读音，`voice`/字幕保持正确写法；**同音替代用非多音字（如量→辆），词内不加空格**
 - 短口播镜须加副信息+ambient，禁止大面积空镜（见 scene-density-guide）

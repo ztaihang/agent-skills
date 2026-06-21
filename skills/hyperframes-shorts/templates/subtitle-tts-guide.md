@@ -14,12 +14,55 @@
 | `voice` | ✅* | **TTS 口播整句** | 一条 = 一口气念完；保留标点含句末 |
 | `text` | 兼容 | 同 `voice` | 旧项目可只写 `text`；新稿优先 `voice` |
 | `speak` | 否 | **仅 TTS 念法** | 整句填写；按 id 逐行替换，**禁止全局替换** |
-| `subtitle` | 否 | 底部字幕（字符串或数组） | 可短于口播、可与口播不同 |
-| `subtitleParts` | 否 | 显式字幕拆条 | 仅上屏；不写则由脚本按逗号/句号自动拆 |
+| `subtitle` | 否 | 底部字幕（字符串或数组） | **必须是 `voice` 的连续子串**（见 §1.1）；仅去句末标点 |
+| `subtitleParts` | 否 | 显式字幕拆条 | 同上；不写则由脚本从 `voice` 自动按标点拆 |
 | `display` | 否 | HTML 主文案参考 | 与口播解耦；Agent 写画面用 |
 | `notes` | 否 | Agent 备注 | 不进 TTS |
 
 \* 无 `voice` 时回退 `text`（兼容旧稿）。
+
+### 1.1 强制对齐红线（Whisper 字幕同步）
+
+本流程 **必须**跑 `align-subtitles.py`。此时字幕 **禁止缩写、改写、增删口播里没有的字**。
+
+| 层 | 能否与口播不同 | 说明 |
+|----|----------------|------|
+| **`display` / 上屏大字** | ✅ 可以精简美化 | 卡片、标题不要求逐字 |
+| **底部 `.sl` / `subtitleParts`** | ❌ **不可以改写** | 只能是 `voice` 按宽度拆开的 **连续片段** |
+
+**规则：**
+
+1. 每条 `subtitle` / `subtitleParts` 去掉句末标点后，必须能在 **`voice` 原文中按顺序找到**（可省略弯引号，不可换词）
+2. 多条字幕拼接起来应 **覆盖整句口播**（仅允许省略句末 `。！？`）
+3. **`speak` 只改 TTS 读音**，不改上屏；Whisper 对 **speak** 转写，边界仍用 **voice** 定位
+4. 不确定时 **不要手写 subtitleParts** — 留空让 `generate-tts.py` 从 `voice` 自动拆
+
+**❌ 错误（会导致字幕与口播对不上）：**
+
+```json
+{
+  "voice": "它完全不同于前段时间爆火、但连环境配置和打开软件都有些繁琐的「小龙虾」 OpenClaw。",
+  "subtitleParts": [
+    "它不同于前段时间爆火但配置繁琐",
+    "小龙虾 OpenClaw 智能体"
+  ]
+}
+```
+
+**✅ 正确：**
+
+```json
+{
+  "voice": "它完全不同于前段时间爆火、但连环境配置和打开软件都有些繁琐的「小龙虾」 OpenClaw。",
+  "speak": "它完全不同于前段时间爆火、但连环境配置和打开软件都有些繁琐的「小龙虾」 Open Claw。",
+  "subtitleParts": [
+    "它完全不同于前段时间爆火",
+    "但连环境配置和打开软件",
+    "都有些繁琐的",
+    "「小龙虾」 OpenClaw"
+  ]
+}
+```
 
 ### 示例（推荐结构）
 
@@ -50,6 +93,8 @@
 | 在「含金量」等词中间拆 TTS | 只在逗号/句号/完整子句处拆 **subtitle** |
 | 全局替换 `speak` 字符串 | 按 **id 整行** 填写用户读音表 |
 | 为迁就字幕删掉 `voice` 里的句号 | `voice` 保留标点给 Edge TTS 停顿 |
+| **缩写/改写 subtitle**（如「之前须花几年学 Python」） | **subtitle 必须是 voice 连续子串**，只拆行不改词 |
+| 只改 `speak`/`subtitle` 不重跑 TTS | 改 voice/speak/subtitle 后 **必须** generate-tts → align → apply |
 
 ---
 
@@ -183,7 +228,7 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 | **口播稿** | 用户稿子，拆镜 + TTS 依据 |
 | **`voice`** | = 口播整句（一条 wav） |
 | **上屏大字 / 卡片** | 可精简美化（`display` 或 design.md）；不要求与口播逐字一致 |
-| **底部 `.sl`** | = `subtitle` 或从 `voice` 派生；单行；N 条可共享 1 段 wav |
+| **底部 `.sl`** | = `subtitle` 或从 **`voice` 派生**（连续子串）；单行；N 条共享 1 段 wav |
 
 ---
 
@@ -210,6 +255,7 @@ node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 
 - [ ] **口播句数 ≈ lines.json 条数 ≈ wav 段数**（除非用户明确一句拆两句口播）
 - [ ] **无** s2a/s2b/s2c 式拆 TTS（`verify-delivery-checklist.py` 会 WARN）
+- [ ] 每条 `subtitle`/`subtitleParts` 是 **`voice` 连续子串**（`generate-tts.py` 0 ERROR）
 - [ ] 每条 `subtitle`/`subtitleParts` 子句 `visualUnits ≤ maxHan`
 - [ ] **`voice` 保留 TTS 标点**；`.sl` 无句末标点
 - [ ] 多音字/专有名词已查，`speak` 按 id 填写
