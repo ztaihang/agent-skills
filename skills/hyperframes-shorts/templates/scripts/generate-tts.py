@@ -155,8 +155,17 @@ def voice_text(item: dict) -> str:
     return (item.get("voice") or item.get("text") or "").strip()
 
 
+def normalize_speak(text: str) -> str:
+    """Collapse spaces that cause Edge TTS micro-pauses (e.g. 十三 个 → 十三个)."""
+    s = text.strip()
+    s = re.sub(r"([\u4e00-\u9fff\d]+)\s+个", r"\1个", s)
+    s = re.sub(r"(\d+)\s+个", r"\1个", s)
+    return s
+
+
 def tts_payload(item: dict) -> str:
-    return item.get("speak") or voice_text(item)
+    raw = item.get("speak") or voice_text(item)
+    return normalize_speak(raw) if item.get("speak") else raw
 
 
 def split_subtitle_display(text: str, max_units: float) -> list[str]:
@@ -499,6 +508,7 @@ async def main() -> None:
     print(f"Total duration: {total_duration}s | hash: {voiceover_hash}")
     print(f"TTS 条数: {len(lines)}（= wav 段数，非字幕条数）")
     print("下一步: python scripts/align-subtitles.py  （Whisper 词级时间戳 → audio/alignments.json）")
+    print("若 align 崩溃: python scripts/fallback-alignments.py  （权重估算，须听检字幕）")
     if total_duration > 150 and RATE != "+18%":
         print("提示: 总时长 >150s，建议将 RATE 改为 '+18%' 后重跑本脚本")
 

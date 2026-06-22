@@ -35,6 +35,11 @@
 | `divider` | | 封面清单分隔文案，默认 `—— 必装技能清单 ——` |
 | `scenesLabel` | | 卡片底部标签文案，默认 `适用场景` |
 | `highlight` | | 封面强调块，如 `TOP 9` |
+| `xhs` | | 小红书发布文案（build 自动生成 `publish/`） |
+| `xhs.title` | | 发布标题（≤20 字，必填才可控；缺省用 `subtitle`） |
+| `xhs.intro` | | 正文开头段落（可选；缺省不写，仅列 items） |
+| `xhs.footer` | | 正文结尾，默认 `左滑看完 👉 收藏备用` |
+| `xhs.hashtags` | | 话题数组，如 `["#A股", "#Skill"]` |
 | `items` | ✅ | 至少 1 项 |
 | `items[].num` | ✅ | 序号 |
 | `items[].name` | ✅ | Skill 英文名或主标题 |
@@ -43,6 +48,40 @@
 | `items[].scenes` | | 卡片底部补充信息（标签由 `scenesLabel` 控制） |
 
 卡片页内容垂直居中，不显示页码（如 `1 / 5`）。
+
+## 小红书文案（`npm run build` 自动生成）
+
+正文描述**从 `items[]` 自动生成**（与卡片内容一致，不含安装步骤）：
+
+```text
+① 行情数据层｜tag1 · tag2
+{items[].desc}
+…
+左滑看完 👉 收藏备用
+#话题1 #话题2
+```
+
+输出目录 `publish/`：
+
+| 文件 | 用途 |
+|------|------|
+| `xhs-title.txt` | 复制到小红书标题栏 |
+| `xhs-description.txt` | 复制到正文描述栏 |
+| `xhs-copy.txt` | 标题 + 正文合并备查 |
+
+示例 `xhs` 字段：
+
+```json
+{
+  "xhs": {
+    "title": "别裸聊 A 股了！这个 Skill 真香",
+    "footer": "左滑看完 👉 收藏备用",
+    "hashtags": ["#a-stock-data", "#A股", "#AI炒股", "#Cursor", "#Skill"]
+  }
+}
+```
+
+Agent 解析文案时**必须填写 `xhs.title`**（小红书标题，可与封面 `title` 不同）；`xhs.hashtags` 按内容拟定；正文描述无需手写，由 build 从 items 生成。
 
 ## vibecoding（P3 占位）
 

@@ -44,7 +44,7 @@ description: HyperFrames 中文短视频视觉与版式预处理规范（抖音/
 | 3d | **口播→lines.json** | 读 **`subtitle-tts-guide.md`**：`voice` 整句 TTS；**`subtitleParts` 必须是 voice 连续子串**（禁止缩写）；`speak` 按 id 纠音；**禁止为字幕宽度拆 TTS id** |
 | 4 | 拆镜 + HTML | 读 **`hyperframes-zh-checklist.md` §一–五**；`index.html`：严格按 `design.md` + **scene-density 每镜 5 项**；**fonts/ + @font-face**；实现 **L0–L4 动效**；**`.sl` 单行 CSS + 拆条**；GSAP `mt`、字幕、音轨占位 |
 | 5 | TTS | `python scripts/generate-tts.py` → `audio/segments/*.wav` + `schedule.json` |
-| **5b** | **字幕强制对齐** | `python scripts/align-subtitles.py` → `audio/alignments.json`（**从 wav 提取词级时间戳**，非 TTS 内嵌） |
+| **5b** | **字幕强制对齐** | `python scripts/align-subtitles.py` → `audio/alignments.json`（**从 wav 提取词级时间戳**）；失败则 `fallback-alignments.py` |
 | 6 | 时间轴同步 | `node scripts/apply-audio-schedule.mjs` → 读 alignments 更新 clip 时长、字幕、`voiceover.wav` 单轨 |
 | 6b | 品牌片尾 | 有【品牌片尾】时 → 写 `assets/brand.json` + `node scripts/apply-brand.mjs` |
 | 7 | 动画/音效对齐 | 按 `schedule.json` 修正转场时刻、**L2 数字/卡片强调**、卡片/指标入场、SFX `data-start`；音轨 index 不重叠 |
@@ -72,6 +72,7 @@ npm run dev
 ```text
 templates/scripts/generate-tts.py      → 项目/scripts/
 templates/scripts/align-subtitles.py   → 项目/scripts/
+templates/scripts/fallback-alignments.py → 项目/scripts/  （Whisper 崩溃时的权重兜底）
 templates/scripts/apply-audio-schedule.mjs → 项目/scripts/
 templates/requirements-align.txt       → 项目/（或 pip install faster-whisper）
 templates/scripts/apply-brand.mjs      → 项目/scripts/
@@ -530,6 +531,7 @@ mt.fromTo("#avatar-ring", { opacity: 0, scale: 0.5, y: 36 }, { opacity: 1, scale
 # 口播 → wav → 词级对齐 → 字幕时间轴
 python scripts/generate-tts.py
 python scripts/align-subtitles.py   # 从 wav 提取时间戳 → audio/alignments.json
+# 若 align 崩溃: python scripts/fallback-alignments.py
 node scripts/apply-audio-schedule.mjs
 ```
 
@@ -542,8 +544,9 @@ node scripts/apply-audio-schedule.mjs
 - **`subtitle` / `subtitleParts`**：底部上屏；**必须是 `voice` 的连续子串**（只拆单行宽度，禁止缩写/改写）；超长只在逗号/句号/完整子句处拆 **显示**；不确定则留空由脚本自动拆
 - **无 subtitle 时**：脚本从 `voice` 自动按标点拆多条 `.sl`（如 `s2`、`s2_2`），**共享同一段 wav**
 - **`align-subtitles.py`**：**必须**在 TTS 后运行；用 faster-whisper 对每段 wav 做词级时间戳，写入 `audio/alignments.json`
-- **`apply-audio-schedule.mjs`**：**优先**读 `alignments.json` 写字幕 GSAP；缺失或 hash 过期才 fallback 估算
-- **`generate-tts.py`**：对 `voice` 超长仅 **WARN**；对 `subtitle` 子句超 `maxHan` 才 **ERROR**
+- **`fallback-alignments.py`**：Whisper **崩溃/不可用**时兜底（Windows 常见）；speak+字数混合权重，**须听检**多 part 字幕
+- **`apply-audio-schedule.mjs`**：**优先**读 `alignments.json` 写字幕 GSAP；`engine: fallback` 时对后续字幕条略提前 0.08s；缺失或 hash 过期才 inline 估算
+- **`generate-tts.py`**：`speak` 自动 `normalize_speak()`（`十三 个`→`十三个`）；对 `voice` 超长仅 **WARN**；对 `subtitle` 子句超 `maxHan` 才 **ERROR**
 - **上屏 `.sl`**：去掉该条 **末尾** 标点（`，。！？：；、`）；不是去掉 TTS 里的标点
 - **硬性：底部字幕永远单行**——禁止两行、禁止 `<br>` 换行
   - 超长须在 **subtitle 显示层** 拆多条 `.sl`；**禁止**用 ellipsis 长期挡字
@@ -559,7 +562,7 @@ node scripts/apply-audio-schedule.mjs
 
 1. 改 `audio/lines.json` 对应 `id` 的 `voice`（及 `subtitle` / `speak` 若需要）
 2. 跑 `python scripts/generate-tts.py`（校验 subtitle 为 voice 子串；写入 `schedule.json`）
-3. 跑 `python scripts/align-subtitles.py`（重算 `alignments.json`）
+3. 跑 `python scripts/align-subtitles.py`（重算 `alignments.json`）；失败则 `python scripts/fallback-alignments.py`
 4. 跑 `node scripts/apply-audio-schedule.mjs`（同步字幕 HTML）
 5. **Ctrl+C 重启** `npm run dev`，浏览器硬刷新
 6. 跳到该条字幕时间点 **戴耳机确认口播**（不能只看字幕文字）
@@ -782,7 +785,7 @@ npx hyperframes render -o "renders/项目名_v1.mp4"
 - [ ] 片尾镜：变体 A/B/C 与 `design.md` 风格一致？GSAP 对齐片尾 TTS？
 - [ ] 已跑 `apply-brand.mjs`，头像在 `assets/avatar.png`？
 - [ ] 音轨为单条 `voiceover.wav`（无同轨多 segment 叠音）？
-- [ ] 新建项目已从 `templates/scripts/` 复制三件套？
+- [ ] 新建项目已从 `templates/scripts/` 复制四件套（含 `fallback-alignments.py`）？
 
 ### 音频
 - [ ] TTS 配音已规划？

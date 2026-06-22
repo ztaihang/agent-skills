@@ -9,8 +9,10 @@ const data = JSON.parse(readFileSync(join(root, "audio/schedule.json"), "utf8"))
 const { schedule, sceneTimes, totalDuration, subtitleMaxUnits = 16, voiceoverHash } = data;
 
 let alignments = null;
+let alignEngine = null;
 if (existsSync(alignPath)) {
   const alignData = JSON.parse(readFileSync(alignPath, "utf8"));
+  alignEngine = alignData.engine || null;
   if (alignData.voiceoverHash === voiceoverHash) {
     alignments = alignData.lines;
   } else {
@@ -199,20 +201,36 @@ function speakSegmentForPart(voice, speak, prevPos, currPos) {
   return speak.slice(s0, Math.max(s1, s0 + 1));
 }
 
+function normalizeSpeak(text) {
+  return String(text || "")
+    .trim()
+    .replace(/([\u4e00-\u9fff\d]+)\s+个/gu, "$1个")
+    .replace(/(\d+)\s+个/g, "$1个");
+}
+
+const VISUAL_BLEND = 0.58;
+const SPEAK_BLEND = 0.42;
+
 function partWeights(line, parts, boundaries) {
   const voice = line.voice || line.text || "";
-  const speak = line.speak || voice;
+  const speak = normalizeSpeak(line.speak || voice);
+  const voiceNorm = normalizeSpeak(voice);
   return parts.map((part, i) => {
     const prevPos = i === 0 ? 0 : boundaries[i - 1];
     const currPos = boundaries[i];
-    const seg = speakSegmentForPart(voice, speak, prevPos, currPos);
-    const base = speak !== voice ? speakTimingWeight(seg) : speakTimingWeight(part);
-    return Math.max(1, base);
+    const visual = Math.max(1, visualUnits(part));
+    if (speak !== voiceNorm) {
+      const seg = speakSegmentForPart(voice, speak, prevPos, currPos);
+      const spoken = speakTimingWeight(seg);
+      return Math.max(1, visual * VISUAL_BLEND + spoken * SPEAK_BLEND);
+    }
+    return visual;
   });
 }
 
 /** 对齐时间戳模式：Whisper 词级时间 + 极小缓冲 */
 const ALIGNED_PAD_FIRST = 0.02;
+const FALLBACK_SUB_EARLY = 0.08;
 
 function buildSubEntriesFromAlignment(line, parts) {
   const row = alignments?.[line.id];
@@ -221,13 +239,19 @@ function buildSubEntriesFromAlignment(line, parts) {
 
   const lineStart = line.start;
   const lineEnd = line.showEnd;
+  const early = alignEngine === "fallback" ? FALLBACK_SUB_EARLY : 0;
+
+  const relStarts = row.parts.map((ap, i) => {
+    let s = ap.start + (i === 0 ? ALIGNED_PAD_FIRST : 0);
+    if (i > 0 && early > 0) s = Math.max(0, s - early);
+    return s;
+  });
 
   return parts.map((part, i) => {
-    const ap = row.parts[i];
-    const relStart = Math.max(0, ap.start + (i === 0 ? ALIGNED_PAD_FIRST : 0));
+    const relStart = relStarts[i];
     const relEnd =
       i < parts.length - 1
-        ? row.parts[i + 1].start
+        ? relStarts[i + 1]
         : (row.duration ?? lineEnd - lineStart);
 
     const start = +(lineStart + relStart).toFixed(3);

@@ -92,7 +92,8 @@ npm run dev
 - 写 HTML 前**必读** taste-skill + anti-slop 方案 + css-animations / design-motion-principles / web-typography
 - **镜内防太空**：短镜须副信息 + `#root` 静态装饰（`scene-density-guide.md`；禁止每镜 infinite ambient）
 - **口播 / 字幕分离**：`voice` 整句 TTS；`subtitle` 仅上屏；禁止为 maxHan 拆多 wav
-- **字幕对齐**：TTS 后 **`align-subtitles.py`**（faster-whisper 词级时间戳 → `audio/alignments.json`），再 `apply-audio-schedule.mjs`
+- **字幕对齐**：TTS 后 **`align-subtitles.py`**（首选）；Whisper 不可用时 **`fallback-alignments.py`**（权重兜底，须听检）→ `apply-audio-schedule.mjs`
+- **`speak` 规范**：数字+量词连写（`十三个`）；`generate-tts.py` 自动 `normalize_speak()`
 - Edge TTS 单轨 `voiceover.wav` + 字幕与口播同步
 - 品牌片尾：`off` / 变体 A·B·C / 自定义
 - Agent 自动 TTS → **align-subtitles** → 时间轴、`npm run check`；**不自动 render**

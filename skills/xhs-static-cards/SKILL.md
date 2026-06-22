@@ -132,8 +132,8 @@ DESIGN_VARIANCE 5 | MOTION_INTENSITY 1 | VISUAL_DENSITY 5
 | 3 | 解析文案 → `content.json`（`references/content-schema.md`） |
 | 4 | 从 **`{{SKILL_DIR}}/templates/`** 复制到项目：`package.json`、`scripts/`、`families/` |
 | 5 | `npm install` |
-| 6 | `npm run build` → `preview/` |
-| 7 | 交付：仅告知 `npm run dev`；**禁止自动 export** |
+| 6 | `npm run build` → `preview/` + `publish/`（小红书标题/描述） |
+| 7 | 交付：告知 `npm run dev` 预览 + `publish/xhs-*.txt` 可直接复制发帖；**禁止自动 export** |
 
 `{{SKILL_DIR}}` = 本 skill 安装目录（含 `templates/` 子目录）。
 
@@ -167,7 +167,9 @@ Export 失败且提示 Chromium 缺失 → 运行 `npx playwright install chromi
 - **badge**：默认 `AI 工具推荐`
 - **highlight**：如 `TOP 9`
 - **items[]**：`num`, `name`, `tags[]`, `desc`, `scenes`
-- 保留用户原文含义，可整理标点，**不擅自删核心信息**
+- **xhs.title**：小红书发布标题（可与封面 title 不同，≤20 字）
+- **xhs.hashtags**：话题标签数组
+- 正文描述由 build **从 items 自动生成**，不写安装步骤
 
 编号识别：`①` `1.` `humanizer — 描述` 等。
 
@@ -187,7 +189,7 @@ Export 失败且提示 Chromium 缺失 → 运行 `npx playwright install chromi
 
 | 路径 | 用途 |
 |------|------|
-| `templates/scripts/build.mjs` | content.json → preview HTML |
+| `templates/scripts/build.mjs` | content.json → preview HTML + publish 文案 |
 | `templates/scripts/export.mjs` | Playwright → output PNG |
 | `templates/families/skill-list/` | Skill 推荐族样式 |
 | `templates/examples/codex-skills.json` | 示例数据 |
@@ -215,6 +217,7 @@ content.json                             → <项目>/（Agent 生成）
 ├── scripts/build.mjs, export.mjs
 ├── families/skill-list/
 ├── preview/          ← build 生成
+├── publish/          ← xhs-title.txt / xhs-description.txt
 └── output/           ← export 生成
 ```
 

@@ -301,6 +301,36 @@ def check_subtitle_voice_substrings() -> None:
             pos = idx + len(pn)
 
 
+def check_subtitle_orphan_parts() -> None:
+    """Warn when auto-split leaves tiny orphan subtitle rows (e.g. 层级 alone)."""
+    schedule_path = ROOT / "audio" / "schedule.json"
+    if not schedule_path.is_file():
+        return
+    try:
+        sched = json.loads(schedule_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+
+    def strip_tail(s: str) -> str:
+        return re.sub(r"[，。！？：；、]+$", "", s.strip())
+
+    for row in sched.get("schedule") or []:
+        parts = row.get("subtitleParts") or []
+        if len(parts) <= 1:
+            continue
+        lid = row.get("id", "?")
+        for j, part in enumerate(parts):
+            if j == 0:
+                continue
+            core = strip_tail(str(part))
+            han = len(re.findall(r"[\u4e00-\u9fff]", core))
+            if han <= 2 and len(core) <= 4:
+                warn(
+                    f"{lid}: subtitleParts[{j}] 仅「{core}」— "
+                    f"疑似自动拆断，请在 lines.json 手写语义断点"
+                )
+
+
 def check_alignments() -> None:
     schedule_path = ROOT / "audio" / "schedule.json"
     align_path = ROOT / "audio" / "alignments.json"
@@ -319,7 +349,11 @@ def check_alignments() -> None:
     ah = align.get("voiceoverHash")
     if sh and ah and sh != ah:
         err(
-            f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 align-subtitles.py"
+            f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 align-subtitles.py 或 fallback-alignments.py"
+        )
+    if align.get("engine") == "fallback":
+        warn(
+            "alignments.json 使用 fallback 权重模式 — 精度低于 Whisper，交付前须听检多 part 字幕镜"
         )
     lines = align.get("lines") or {}
     for row in sched.get("schedule") or []:
@@ -357,6 +391,7 @@ def main() -> int:
     check_build_source(text)
     check_tts_granularity()
     check_subtitle_voice_substrings()
+    check_subtitle_orphan_parts()
     check_alignments()
 
     return _report()

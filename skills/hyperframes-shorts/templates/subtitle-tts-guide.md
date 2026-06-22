@@ -35,7 +35,8 @@
 1. 每条 `subtitle` / `subtitleParts` 去掉句末标点后，必须能在 **`voice` 原文中按顺序找到**（可省略弯引号，不可换词）
 2. 多条字幕拼接起来应 **覆盖整句口播**（仅允许省略句末 `。！？`）
 3. **`speak` 只改 TTS 读音**，不改上屏；Whisper 对 **speak** 转写，边界仍用 **voice** 定位
-4. 不确定时 **不要手写 subtitleParts** — 留空让 `generate-tts.py` 从 `voice` 自动拆
+4. 凡 **数字+量词**（「七个层级」「13 个数据源」）、**并列结构**、**专有名词** — **必须手写 `subtitleParts`**，不要依赖自动按宽度切字
+5. 短句、标点清晰时可留空自动拆；交付前 `verify-delivery-checklist.py` 会 WARN 疑似 orphan 条（如单独「层级」）
 
 **❌ 错误（会导致字幕与口播对不上）：**
 
@@ -118,7 +119,7 @@
 
 ### 自动拆上屏（无 subtitle 时）
 
-`generate-tts.py` 把 `voice` 整句合成一条 wav；`align-subtitles.py` 用 **faster-whisper 词级时间戳** 在 wav 内定位每条 `subtitleParts` 的起止，写入 `audio/alignments.json`；`apply-audio-schedule.mjs` 优先读对齐结果写多条 `.sl`（如 `s2`、`s2_2`），**共享同一段 wav**。无 `alignments.json` 时才 fallback 估算（长句易偏，不推荐交付）。
+`generate-tts.py` 把 `voice` 整句合成一条 wav；**优先** `align-subtitles.py`（faster-whisper 词级时间戳）写入 `audio/alignments.json`；`apply-audio-schedule.mjs` 读对齐结果写多条 `.sl`。若 Whisper **崩溃/无法安装**（常见于 Windows），改跑 **`fallback-alignments.py`**（speak+字数混合权重，**精度有限，须听检**）。无 `alignments.json` 时 `apply-audio-schedule` 才 inline 估算（不推荐交付）。
 
 ### 显式规划字幕（推荐长句）
 
@@ -158,6 +159,7 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 | 「的」字结构 | 「我的 \| 电脑」 |
 | 专有名词中间 | 「Open \| Claw」 |
 | 数字+单位 | 「100 \| 万」 |
+| 量词结构 | 「七个 \| 层级」「十三 \| 个」 |
 | 上条以虚词结尾 | 「…让我的」+「电脑…」 |
 
 **注意：** 整句 `voice` 以逗号结尾是 **正常口播**，不算 ERROR；禁止断点校验只作用于 **subtitle 相邻条**。
@@ -207,6 +209,19 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 }
 ```
 
+**数字 + 量词（中文 speak）：** 连写，**禁止**在「个」前加空格（Edge TTS 会顿一下）：
+
+```json
+{
+  "voice": "它把 13 个公开数据源和 28 个查询端点进行了打包合并。",
+  "speak": "它把十三个公开数据源和二十八个查询端点进行了打包合并。"
+}
+```
+
+- 字幕仍显示 `13 个` / `28 个`（来自 `voice` / `subtitleParts`）
+- TTS 念「十三个」「二十八个」一口气读完
+- `generate-tts.py` 会对 `speak` 自动 `normalize_speak()`（`十三 个` → `十三个`）
+
 ### 6.2 常见多音字（优先改 speak，勿改 voice）
 
 | 字 | 场景 | speak 思路 |
@@ -243,7 +258,8 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 
 ```bash
 python scripts/generate-tts.py        # 校验 subtitle；voice 超长仅 WARN
-python scripts/align-subtitles.py     # 必须：词级时间戳对齐 subtitleParts
+python scripts/align-subtitles.py     # 首选：词级时间戳对齐 subtitleParts
+# 若 align 崩溃 → python scripts/fallback-alignments.py  （权重估算，须听检）
 node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 ```
 

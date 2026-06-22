@@ -22,7 +22,8 @@ async function exportPage(browser, htmlFile, outFile) {
     viewport: { width: WIDTH, height: HEIGHT },
     deviceScaleFactor: DPR,
   });
-  await page.goto(fileUrl, { waitUntil: "networkidle" });
+  const exportUrl = fileUrl + (fileUrl.includes("?") ? "&" : "?") + "export=1";
+  await page.goto(exportUrl, { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
   await page.screenshot({
     path: outFile,
