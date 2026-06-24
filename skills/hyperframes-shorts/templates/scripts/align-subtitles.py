@@ -9,6 +9,7 @@ substrings of voice — see templates/subtitle-tts-guide.md §1.1.
 """
 from __future__ import annotations
 
+import argparse
 import difflib
 import json
 import re
@@ -340,15 +341,52 @@ def align_line(model: WhisperModel, row: dict) -> dict:
     }
 
 
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Whisper forced alignment for subtitle parts")
+    p.add_argument("--model", default=MODEL_NAME, help="faster-whisper model size")
+    p.add_argument("--compute-type", default="int8", help="ctranslate2 compute type")
+    p.add_argument(
+        "--smoke-only",
+        action="store_true",
+        help="Load model and transcribe first segment only (for run-align.py probes)",
+    )
+    return p.parse_args()
+
+
+def smoke_test(model: WhisperModel, schedule: list[dict]) -> bool:
+    row = next((r for r in schedule if r.get("src")), None)
+    if not row:
+        return False
+    wav = ROOT / row["src"].replace("\\", "/")
+    if not wav.exists():
+        return False
+    speak = row.get("speak") or row.get("voice") or row.get("text") or ""
+    try:
+        tokens = transcribe_tokens(model, wav, speak)
+    except Exception as exc:
+        print(f"SMOKE transcribe error: {exc}", file=sys.stderr)
+        return False
+    return len(tokens) > 0
+
+
 def main() -> None:
+    args = parse_args()
     if not SCHEDULE_PATH.exists():
         print("ERROR: run generate-tts.py first (missing schedule.json)", file=sys.stderr)
         raise SystemExit(1)
 
     data = json.loads(SCHEDULE_PATH.read_text(encoding="utf-8"))
     schedule = data["schedule"]
-    print(f"Loading faster-whisper model: {MODEL_NAME}")
-    model = WhisperModel(MODEL_NAME, device="cpu", compute_type="int8")
+    print(f"Loading faster-whisper model: {args.model} ({args.compute_type})")
+    model = WhisperModel(args.model, device="cpu", compute_type=args.compute_type)
+
+    if args.smoke_only:
+        ok = smoke_test(model, schedule)
+        if ok:
+            print(f"SMOKE OK model={args.model} compute={args.compute_type}")
+            raise SystemExit(0)
+        print(f"SMOKE FAIL model={args.model} compute={args.compute_type}", file=sys.stderr)
+        raise SystemExit(1)
 
     lines_out: dict[str, dict] = {}
     errors: list[str] = []
@@ -366,7 +404,8 @@ def main() -> None:
             print(f"FAIL {line_id}: {exc}", file=sys.stderr)
 
     payload = {
-        "model": MODEL_NAME,
+        "model": args.model,
+        "computeType": args.compute_type,
         "engine": "faster-whisper",
         "voiceoverHash": data.get("voiceoverHash"),
         "lines": lines_out,
@@ -378,6 +417,7 @@ def main() -> None:
         print(f"WARNING: {len(errors)} line(s) failed alignment", file=sys.stderr)
         for e in errors:
             print(f"  {e}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

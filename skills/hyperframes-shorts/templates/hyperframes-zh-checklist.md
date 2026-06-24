@@ -118,7 +118,7 @@ npm run check
 | 长句字幕偏快/偏慢 / 字与口播不一致 | subtitle 缩写改写、alignments 过期、或用了 fallback 权重 | 改 lines.json 为 voice 子串 + 手写 subtitleParts → 重跑 TTS → align（或 fallback）→ apply → **听检** |
 | 字幕 orphan（如单独「层级」） | 未手写 subtitleParts，自动按宽度切字 | lines.json 补语义断点（如「清晰的七个层级」） |
 | TTS 数字处怪停顿 | speak 写「十三 个」带空格 | speak 连写「十三个」；脚本已 normalize_speak |
-| align-subtitles 崩溃 (Windows) | faster-whisper 进程异常 | `python scripts/fallback-alignments.py` → apply → 听检 |
+| align-subtitles / run-align 崩溃 (Windows) | faster-whisper 进程异常 | `python scripts/run-align.py`（自动试 float32/tiny）；仍失败 → **WSL2** 跑同命令；仅草稿 `ALLOW_FALLBACK_ALIGN=1` |
 | preview CPU 高 | 每镜 `.ambient` + CSS infinite / feTurbulence grain | 删 per-scene ambient；保留 `#root` 静态装饰 |
 | 全是方框 | 未实现 design.md rounded | 统一 `--r-md` / pill chip |
 | inspect clipped_text | 字幕 line-height 过小 | `min-height` + `line-height ≥ 1.3` |

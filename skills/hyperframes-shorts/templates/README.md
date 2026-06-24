@@ -37,6 +37,6 @@
 
 流水线（**全部由 Agent 自动执行**；用户交付后只 `npm run dev`）：
 
-`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（voice 整句 + subtitle 显示）** → 写 `index.html`（**hyperframes-zh-checklist** + scene-density + L0–L4）→ `generate-tts.py` → **`align-subtitles.py`**（失败则 **`fallback-alignments.py`**）→ `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **`verify-delivery-checklist.py`** → **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
+`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（voice 整句 + subtitle 显示）** → 写 `index.html`（**hyperframes-zh-checklist** + scene-density + L0–L4）→ `generate-tts.py` → **`run-align.py`**（Whisper 全失败 → WSL；草稿 `ALLOW_FALLBACK_ALIGN=1`）→ `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **`verify-delivery-checklist.py`** → **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
 
 **Studio 注意：** `npm run dev` 开着时 Studio 可能回写 `index.html` 并把中文变成 `??`。Agent 写 HTML 前先停 dev；用户勿在 Studio 画布改中文，改 `audio/lines.json` 后重跑 TTS 流水线。

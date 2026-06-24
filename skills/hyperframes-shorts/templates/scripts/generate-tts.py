@@ -160,12 +160,31 @@ def normalize_speak(text: str) -> str:
     s = text.strip()
     s = re.sub(r"([\u4e00-\u9fff\d]+)\s+个", r"\1个", s)
     s = re.sub(r"(\d+)\s+个", r"\1个", s)
+    # 中文与 Token/API/JSON 等缩写之间的空格会导致 Edge 顿一下
+    s = re.sub(r"([\u4e00-\u9fff])\s+(Token|API|JSON|CLI|MCP)\b", r"\1\2", s, flags=re.I)
+    s = re.sub(r"\b(Token|API|JSON|CLI|MCP)\s+([\u4e00-\u9fff])", r"\1\2", s, flags=re.I)
+    s = re.sub(r"输入\s+Token", "输入Token", s, flags=re.I)
+    s = re.sub(r"昂贵的\s+API", "昂贵的API", s, flags=re.I)
+    s = re.sub(r"浪费\s+Token", "浪费Token", s, flags=re.I)
+    return s
+
+
+def sanitize_for_edge_tts(text: str) -> str:
+    """Fix known Edge TTS dropouts (English token + following Han, smart quotes)."""
+    s = text
+    for ch in ("\u201c", "\u201d", "\u2018", "\u2019", "「", "」", "『", "』"):
+        s = s.replace(ch, "")
+    # 「API 密钥/秘钥」口播常在 API 后吞末尾汉字 → 改为连读（speak 已写 API接口密钥 时不再改）
+    if "API接口密钥" not in s and "API接口秘钥" not in s:
+        s = re.sub(r"API\s*[秘密]钥", "API接口密钥", s, flags=re.I)
+    # 「整套代码库」口播偶发吞「库」→ 加「的」稳定连读
+    s = re.sub(r"整套代码库", "整套的代码库", s)
     return s
 
 
 def tts_payload(item: dict) -> str:
     raw = item.get("speak") or voice_text(item)
-    return normalize_speak(raw) if item.get("speak") else raw
+    return sanitize_for_edge_tts(normalize_speak(raw))
 
 
 def split_subtitle_display(text: str, max_units: float) -> list[str]:
@@ -507,8 +526,8 @@ async def main() -> None:
     print(f"\nVoiceover: {VOICEOVER} ({probe_duration(VOICEOVER)}s)")
     print(f"Total duration: {total_duration}s | hash: {voiceover_hash}")
     print(f"TTS 条数: {len(lines)}（= wav 段数，非字幕条数）")
-    print("下一步: python scripts/align-subtitles.py  （Whisper 词级时间戳 → audio/alignments.json）")
-    print("若 align 崩溃: python scripts/fallback-alignments.py  （权重估算，须听检字幕）")
+    print("下一步: python scripts/run-align.py  （Whisper 词级时间戳 → audio/alignments.json）")
+    print("Whisper 全失败: ALLOW_FALLBACK_ALIGN=1 python scripts/run-align.py  （草稿估算，非正式交付）")
     if total_duration > 150 and RATE != "+18%":
         print("提示: 总时长 >150s，建议将 RATE 改为 '+18%' 后重跑本脚本")
 

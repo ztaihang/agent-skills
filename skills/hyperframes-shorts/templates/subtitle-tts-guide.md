@@ -253,13 +253,13 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 |------|------|
 | 3d 写 lines.json | 先写 `voice` 整句；`subtitle` 单独规划或留空自动拆 |
 | 5 TTS | 每行一个 wav（行数 = 口播句数） |
-| **5b 强制对齐** | `align-subtitles.py`：每段 wav + `speak`/`voice` → `audio/alignments.json`（**字幕时间戳来源**） |
+| **5b 强制对齐** | `run-align.py`：子进程试 Whisper（small→float32→base→tiny）→ `alignments.json` |
 | 6 时间轴 | 口播 1 轨；字幕 N 条共享该段 `[start, showEnd]`，时间来自 alignments |
 
 ```bash
 python scripts/generate-tts.py        # 校验 subtitle；voice 超长仅 WARN
-python scripts/align-subtitles.py     # 首选：词级时间戳对齐 subtitleParts
-# 若 align 崩溃 → python scripts/fallback-alignments.py  （权重估算，须听检）
+python scripts/run-align.py           # 首选：Whisper 词级时间戳
+# Whisper 全失败 → WSL 重跑；仅草稿：ALLOW_FALLBACK_ALIGN=1 python scripts/run-align.py
 node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 ```
 
@@ -276,7 +276,8 @@ node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 - [ ] **`voice` 保留 TTS 标点**；`.sl` 无句末标点
 - [ ] 多音字/专有名词已查，`speak` 按 id 填写
 - [ ] `generate-tts.py` **0 ERROR**（voice 超长 WARN 可接受）
-- [ ] `audio/alignments.json` 存在且 `voiceoverHash` 与 `schedule.json` 一致
+- [ ] `audio/alignments.json` 存在且 `engine` 为 `faster-whisper`（非 fallback）
+- [ ] `voiceoverHash` 与 `schedule.json` 一致
 - [ ] 戴耳机：同 id 内多字幕切换与口播同步（长句尤其 spot-check）
 - [ ] `matchRatio` 过低（如 <0.55）的行已听检或改 `speak`/口播稿
 - [ ] 截帧：字幕无第二行、无长期 ellipsis

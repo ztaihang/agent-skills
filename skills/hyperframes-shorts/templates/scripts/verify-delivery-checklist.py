@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Agent-only: post-build delivery checklist for Chinese HyperFrames shorts.
 
-Run after build-index.py + align-subtitles.py + apply-audio-schedule.mjs, before npm run check.
+Run after build-index.py + run-align.py + apply-audio-schedule.mjs, before npm run check.
 See templates/hyperframes-zh-checklist.md for full rules.
 
 Exit 0 = no ERROR (WARN may remain). Exit 1 = fix required before delivery.
@@ -10,6 +10,7 @@ Exit 0 = no ERROR (WARN may remain). Exit 1 = fix required before delivery.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -352,9 +353,17 @@ def check_alignments() -> None:
             f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 align-subtitles.py 或 fallback-alignments.py"
         )
     if align.get("engine") == "fallback":
-        warn(
-            "alignments.json 使用 fallback 权重模式 — 精度低于 Whisper，交付前须听检多 part 字幕镜"
-        )
+        if os.environ.get("ALLOW_FALLBACK_DELIVERY") == "1":
+            warn(
+                "alignments.json 使用 fallback 权重模式 — 精度低于 Whisper，交付前须听检多 part 字幕镜"
+            )
+        else:
+            err(
+                "alignments.json 使用 fallback 估算时间轴 — 不能作为正式交付。"
+                "请运行 python scripts/run-align.py（或 WSL 内跑 Whisper）；"
+                "仅草稿预览可设 ALLOW_FALLBACK_ALIGN=1 后重跑 run-align，"
+                "正式放行可设 ALLOW_FALLBACK_DELIVERY=1"
+            )
     lines = align.get("lines") or {}
     for row in sched.get("schedule") or []:
         lid = row.get("id")
