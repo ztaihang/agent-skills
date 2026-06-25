@@ -17,11 +17,11 @@ if (existsSync(alignPath)) {
     alignments = alignData.lines;
   } else {
     console.warn(
-      `alignments.json stale (hash ${alignData.voiceoverHash} != ${voiceoverHash}) — run: python scripts/align-subtitles.py`
+      `alignments.json stale (hash ${alignData.voiceoverHash} != ${voiceoverHash}) — run: python scripts/generate-tts.py`
     );
   }
 } else {
-  console.warn("audio/alignments.json missing — run: python scripts/align-subtitles.py");
+  console.warn("audio/alignments.json missing — run: python scripts/generate-tts.py");
 }
 
 let html = readFileSync(htmlPath, "utf8");
@@ -228,7 +228,7 @@ function partWeights(line, parts, boundaries) {
   });
 }
 
-/** 对齐时间戳模式：Whisper 词级时间 + 极小缓冲 */
+/** 对齐时间戳：Edge WordBoundary 或 Whisper 词级 + 极小缓冲 */
 const ALIGNED_PAD_FIRST = 0.02;
 const FALLBACK_SUB_EARLY = 0.08;
 
@@ -455,5 +455,11 @@ meta.duration = totalDuration;
 writeFileSync(metaPath, JSON.stringify(meta, null, 2) + "\n");
 
 console.log(
-  `Updated index.html — total ${totalDuration}s | ${schedule.length} TTS rows → ${allSubEntries.length} subtitle clips${alignments ? " (forced-align)" : " (estimated)"}`
+  `Updated index.html — total ${totalDuration}s | ${schedule.length} TTS rows → ${allSubEntries.length} subtitle clips${
+    alignments
+      ? alignEngine === "edge-tts"
+        ? " (edge-tts WordBoundary)"
+        : " (forced-align)"
+      : " (estimated)"
+  }`
 );

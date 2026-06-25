@@ -21,9 +21,9 @@
 
 \* 无 `voice` 时回退 `text`（兼容旧稿）。
 
-### 1.1 强制对齐红线（Whisper 字幕同步）
+### 1.1 强制对齐红线（Edge WordBoundary 字幕同步）
 
-本流程 **必须**跑 `align-subtitles.py`。此时字幕 **禁止缩写、改写、增删口播里没有的字**。
+本流程 **`generate-tts.py` 在 TTS 时采集 Edge WordBoundary**，聚合为 `audio/alignments.json`（`engine=edge-tts`）。此时字幕 **禁止缩写、改写、增删口播里没有的字**。
 
 | 层 | 能否与口播不同 | 说明 |
 |----|----------------|------|
@@ -34,7 +34,7 @@
 
 1. 每条 `subtitle` / `subtitleParts` 去掉句末标点后，必须能在 **`voice` 原文中按顺序找到**（可省略弯引号，不可换词）
 2. 多条字幕拼接起来应 **覆盖整句口播**（仅允许省略句末 `。！？`）
-3. **`speak` 只改 TTS 读音**，不改上屏；Whisper 对 **speak** 转写，边界仍用 **voice** 定位
+3. **`speak` 只改 TTS 读音**，不改上屏；边界按 **speak 音频** 的 WordBoundary 定位，再映射到 **voice** 的 subtitleParts
 4. 凡 **数字+量词**（「七个层级」「13 个数据源」）、**并列结构**、**专有名词** — **必须手写 `subtitleParts`**，不要依赖自动按宽度切字
 5. 短句、标点清晰时可留空自动拆；交付前 `verify-delivery-checklist.py` 会 WARN 疑似 orphan 条（如单独「层级」）
 
@@ -119,7 +119,7 @@
 
 ### 自动拆上屏（无 subtitle 时）
 
-`generate-tts.py` 把 `voice` 整句合成一条 wav；**优先** `align-subtitles.py`（faster-whisper 词级时间戳）写入 `audio/alignments.json`；`apply-audio-schedule.mjs` 读对齐结果写多条 `.sl`。若 Whisper **崩溃/无法安装**（常见于 Windows），改跑 **`fallback-alignments.py`**（speak+字数混合权重，**精度有限，须听检**）。无 `alignments.json` 时 `apply-audio-schedule` 才 inline 估算（不推荐交付）。
+`generate-tts.py` 把 `voice` 整句合成一条 wav，并 **`boundary="WordBoundary"`** 写入 `audio/alignments.json`；`apply-audio-schedule.mjs` 读对齐结果写多条 `.sl`。若 Edge **未返回边界**（罕见），可改跑 **`run-align.py` / `fallback-alignments.py`**（Whisper 或权重兜底，**精度较低，须听检**）。无 `alignments.json` 时 `apply-audio-schedule` 才 inline 估算（不推荐交付）。
 
 ### 显式规划字幕（推荐长句）
 
@@ -253,17 +253,16 @@ Agent 写 `subtitle` 或 `subtitleParts` 比自动拆更可控：
 |------|------|
 | 3d 写 lines.json | 先写 `voice` 整句；`subtitle` 单独规划或留空自动拆 |
 | 5 TTS | 每行一个 wav（行数 = 口播句数） |
-| **5b 强制对齐** | `run-align.py`：子进程试 Whisper（small→float32→base→tiny）→ `alignments.json` |
+| **5b 字幕对齐** | `generate-tts.py` 内建 Edge WordBoundary → `alignments.json`（`engine=edge-tts`） |
 | 6 时间轴 | 口播 1 轨；字幕 N 条共享该段 `[start, showEnd]`，时间来自 alignments |
 
 ```bash
-python scripts/generate-tts.py        # 校验 subtitle；voice 超长仅 WARN
-python scripts/run-align.py           # 首选：Whisper 词级时间戳
-# Whisper 全失败 → WSL 重跑；仅草稿：ALLOW_FALLBACK_ALIGN=1 python scripts/run-align.py
+python scripts/generate-tts.py        # wav + schedule + alignments (edge-tts)
 node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
+# 可选兜底: python scripts/run-align.py
 ```
 
-> **时间戳不在 TTS 里生成**：Edge TTS 只产出 wav；**对齐步骤**才从已生成的 wav 提取每个词何时说出，并映射到 `subtitleParts`。
+> **时间戳来源**：Edge TTS 合成时通过 WebSocket 推送 **WordBoundary**（offset/duration/text）；`generate-tts.py` 聚合为每条 `subtitleParts` 的起止时间。Whisper 仅作可选兜底。
 
 ---
 
@@ -276,7 +275,7 @@ node scripts/apply-audio-schedule.mjs # 读 alignments 写多条 .sl + GSAP
 - [ ] **`voice` 保留 TTS 标点**；`.sl` 无句末标点
 - [ ] 多音字/专有名词已查，`speak` 按 id 填写
 - [ ] `generate-tts.py` **0 ERROR**（voice 超长 WARN 可接受）
-- [ ] `audio/alignments.json` 存在且 `engine` 为 `faster-whisper`（非 fallback）
+- [ ] `audio/alignments.json` 存在且 `engine` 为 `edge-tts`（或听检过的 Whisper fallback）
 - [ ] `voiceoverHash` 与 `schedule.json` 一致
 - [ ] 戴耳机：同 id 内多字幕切换与口播同步（长句尤其 spot-check）
 - [ ] `matchRatio` 过低（如 <0.55）的行已听检或改 `speak`/口播稿

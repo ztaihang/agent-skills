@@ -126,7 +126,7 @@ npm run dev
 
 - 按语义**拆镜**，规划布局与动效；**每支视频轮换视觉风格**（`design.md` + visual-styles 预设）
 - 写 HTML 前读取 **css-animations / design-motion-principles / web-typography**，避免千篇一律的科技蓝 UI
-- **Edge TTS** 中文配音 + 字幕时间轴对齐（**底部字幕每条单行**）
+- **Edge TTS WordBoundary** 中文配音 + 字幕时间轴（`generate-tts.py` 写入 `alignments.json`）；Whisper 仅可选兜底
 - 可选**品牌片尾**（变体 A/B/C 或自定义）
 - **版式硬性规则**：上屏文字不重叠；禁止 AI 风 emoji / 表情包插图
 - 自动跑校验，交付前 **0 error**

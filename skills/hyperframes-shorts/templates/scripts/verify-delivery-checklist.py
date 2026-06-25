@@ -338,7 +338,7 @@ def check_alignments() -> None:
     if not schedule_path.is_file():
         return
     if not align_path.is_file():
-        err("audio/alignments.json 缺失 — 须先运行 python scripts/align-subtitles.py")
+        err("audio/alignments.json 缺失 — 须先运行 python scripts/generate-tts.py")
         return
     try:
         sched = json.loads(schedule_path.read_text(encoding="utf-8"))
@@ -350,9 +350,12 @@ def check_alignments() -> None:
     ah = align.get("voiceoverHash")
     if sh and ah and sh != ah:
         err(
-            f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 align-subtitles.py 或 fallback-alignments.py"
+            f"alignments.json 已过期 (hash {ah} != schedule {sh}) — 重跑 python scripts/generate-tts.py"
         )
-    if align.get("engine") == "fallback":
+    engine = align.get("engine")
+    if engine == "edge-tts":
+        pass
+    elif engine == "fallback":
         if os.environ.get("ALLOW_FALLBACK_DELIVERY") == "1":
             warn(
                 "alignments.json 使用 fallback 权重模式 — 精度低于 Whisper，交付前须听检多 part 字幕镜"

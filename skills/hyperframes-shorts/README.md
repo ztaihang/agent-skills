@@ -1,6 +1,6 @@
 # hyperframes-shorts
 
-中文 HyperFrames 短视频全流程 Agent Skill：**口播拆镜 → 视觉规划 → Edge TTS → Whisper 字幕对齐 → 时间轴 → 校验**；用户只需 `npm run dev` 预览。
+中文 HyperFrames 短视频全流程 Agent Skill：**口播拆镜 → 视觉规划 → Edge TTS（WordBoundary 字幕对齐）→ 时间轴 → 校验**；用户只需 `npm run dev` 预览。
 
 ---
 

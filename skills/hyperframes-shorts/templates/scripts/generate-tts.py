@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Per-line Edge TTS → segments/*.wav, concat voiceover.wav, write schedule.json.
+"""Per-line Edge TTS → segments/*.wav, concat voiceover.wav, write schedule.json + alignments.json.
 
 TTS granularity = one breath per lines.json row (voice/text).
 Subtitle display may split into subtitleParts without extra wav files.
+Word-level timing comes from Edge TTS WordBoundary metadata (not Whisper).
 """
 import asyncio
+import difflib
 import hashlib
 import json
 import math
@@ -26,6 +28,8 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 VOICE = "zh-CN-YunyangNeural"
 RATE = "+12%"  # 实测总时长 >150s 时改为 "+18%" 后重跑
 GAP = 0
+TICKS_PER_SEC = 10_000_000
+ALIGNMENTS_PATH = ROOT / "audio/alignments.json"
 
 # 字幕拆条禁止断点 — 见 templates/subtitle-tts-guide.md（仅校验 subtitle，不拦 TTS 整句）
 FORBIDDEN_TAIL = (
@@ -383,18 +387,161 @@ def validate_lines(lines: list[dict]) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-async def synth_line(line_id: str, speak_text: str) -> Path:
+def norm_for_map(text: str) -> str:
+    out: list[str] = []
+    i = 0
+    while i < len(text):
+        if re.match(r'[\s，。！？：；、\u201c\u201d\u2018\u2019「」『』"\']', text[i]):
+            i += 1
+            continue
+        out.append(text[i].lower())
+        i += 1
+    return "".join(out)
+
+
+def build_char_map(src_norm: str, dst_norm: str) -> list[int]:
+    sm = difflib.SequenceMatcher(None, src_norm, dst_norm)
+    src2dst = [0] * max(1, len(src_norm))
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            for k in range(i2 - i1):
+                src2dst[i1 + k] = j1 + k
+        else:
+            for k in range(i1, i2):
+                off = k - i1
+                span = max(1, j2 - j1)
+                src2dst[k] = j1 + min(off, span - 1)
+    return src2dst
+
+
+def norm_idx_for_pos(text: str, pos: int) -> int:
+    return len(norm_for_map(text[:pos]))
+
+
+def find_part_end_in_voice(voice: str, part: str, from_idx: int) -> int:
+    targets = norm_for_map(strip_sub_punct(part))
+    if not targets:
+        return from_idx
+    vn = norm_for_map(voice[from_idx:])
+    if targets not in vn:
+        share = min(1.0, len(targets) / max(1, len(vn)))
+        return min(len(voice), from_idx + max(1, int(len(voice[from_idx:]) * share)))
+    vi = from_idx
+    matched = 0
+    while vi < len(voice) and matched < len(targets):
+        if re.match(r'[\s，。！？：；、\u201c\u201d\u2018\u2019「」『』"\']', voice[vi]):
+            vi += 1
+            continue
+        vi += 1
+        matched += 1
+    return vi
+
+
+def proportional_align_parts(parts: list[str], duration: float) -> list[dict]:
+    weights = [max(1, len(norm_for_map(p))) for p in parts]
+    total = sum(weights)
+    aligned: list[dict] = []
+    t = 0.0
+    for i, part in enumerate(parts):
+        end = duration if i == len(parts) - 1 else min(duration, t + (weights[i] / total) * duration)
+        aligned.append(
+            {"index": i, "text": part, "start": round(t, 3), "end": round(end, 3)}
+        )
+        t = end
+    if aligned:
+        aligned[-1]["end"] = round(duration, 3)
+    return aligned
+
+
+def align_parts_from_boundaries(
+    voice: str, speak: str, parts: list[str], bounds: list[dict], duration: float
+) -> list[dict]:
+    if not bounds:
+        return proportional_align_parts(parts, duration)
+
+    branges: list[tuple[int, int, dict]] = []
+    cum = 0
+    for b in bounds:
+        b0 = cum
+        cum += len(norm_for_map(b["text"]))
+        branges.append((b0, cum, b))
+
+    speak_norm = norm_for_map(speak)
+    voice_norm = norm_for_map(voice)
+    if voice_norm == speak_norm:
+        v2s = list(range(max(len(voice_norm), 1)))
+    else:
+        v2s = build_char_map(voice_norm, speak_norm)
+
+    aligned: list[dict] = []
+    pos = 0
+    for i, part in enumerate(parts):
+        end_pos = find_part_end_in_voice(voice, part, pos)
+        i0_v = norm_idx_for_pos(voice, pos)
+        i1_v = max(i0_v + 1, norm_idx_for_pos(voice, end_pos))
+        i0_s = v2s[min(i0_v, len(v2s) - 1)]
+        i1_s = v2s[min(max(i1_v - 1, 0), len(v2s) - 1)]
+
+        start_t: float | None = None
+        end_t: float | None = None
+        for b0, b1, b in branges:
+            if start_t is None and b1 > i0_s:
+                start_t = b["start"]
+            if b1 >= i1_s + 1 or b is branges[-1][2]:
+                if b0 <= i1_s:
+                    end_t = b["end"]
+                if b1 >= i1_s + 1:
+                    break
+
+        start = start_t if start_t is not None else bounds[0]["start"]
+        end = end_t if end_t is not None else bounds[-1]["end"]
+        if i > 0 and aligned:
+            start = max(start, aligned[-1]["end"])
+        if end <= start:
+            end = min(duration, start + max(0.28, duration / max(len(parts), 1) * 0.45))
+        aligned.append(
+            {"index": i, "text": part, "start": round(start, 3), "end": round(end, 3)}
+        )
+        pos = end_pos
+
+    if aligned:
+        aligned[-1]["end"] = round(duration, 3)
+        for j in range(1, len(aligned)):
+            if aligned[j]["start"] < aligned[j - 1]["end"]:
+                aligned[j]["start"] = round(aligned[j - 1]["end"], 3)
+    return aligned
+
+
+async def synth_line(line_id: str, speak_text: str) -> tuple[Path, list[dict]]:
     mp3 = OUT_DIR / f"{line_id}.mp3"
     wav = OUT_DIR / f"{line_id}.wav"
-    communicate = edge_tts.Communicate(speak_text, VOICE, rate=RATE)
-    await communicate.save(str(mp3))
+    communicate = edge_tts.Communicate(
+        speak_text, VOICE, rate=RATE, boundary="WordBoundary"
+    )
+    bounds: list[dict] = []
+    with open(mp3, "wb") as mp3_file:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                mp3_file.write(chunk["data"])
+            elif chunk["type"] == "WordBoundary":
+                start = chunk["offset"] / TICKS_PER_SEC
+                end = (chunk["offset"] + chunk["duration"]) / TICKS_PER_SEC
+                bounds.append(
+                    {
+                        "start": round(start, 3),
+                        "end": round(end, 3),
+                        "text": chunk["text"],
+                    }
+                )
     subprocess.check_call(
         ["ffmpeg", "-y", "-i", str(mp3), "-ar", "44100", "-ac", "1", str(wav)],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
     mp3.unlink(missing_ok=True)
-    return wav
+    if not bounds:
+        print(f"  WARN {line_id}: Edge 未返回 WordBoundary，字幕将按字数比例估算")
+    return wav, bounds
 
 
 def probe_duration(path: Path) -> float:
@@ -461,6 +608,7 @@ async def main() -> None:
 
     schedule = []
     wavs = []
+    all_bounds: list[list[dict]] = []
     t = 0.0
 
     for item in lines:
@@ -473,8 +621,11 @@ async def main() -> None:
         print(f"TTS {line_id} (sc{scene}): {label}")
         if len(subtitle_parts) > 1:
             print(f"  字幕 {len(subtitle_parts)} 条共享本段音频: {subtitle_parts}")
-        wav = await synth_line(line_id, speak)
+        wav, bounds = await synth_line(line_id, speak)
+        if bounds:
+            print(f"  Edge WordBoundary: {len(bounds)} 段")
         wavs.append(wav)
+        all_bounds.append(bounds)
         duration = probe_duration(wav)
         show_end = round(t + duration, 3)
         row = {
@@ -523,11 +674,38 @@ async def main() -> None:
     (ROOT / "audio/schedule.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    align_lines: dict[str, dict] = {}
+    for item, row, bounds in zip(lines, schedule, all_bounds):
+        voice = voice_text(item)
+        speak = tts_payload(item)
+        parts = row["subtitleParts"]
+        parts_aligned = align_parts_from_boundaries(
+            voice, speak, parts, bounds, float(row["duration"])
+        )
+        align_lines[row["id"]] = {
+            "id": row["id"],
+            "duration": row["duration"],
+            "boundaryCount": len(bounds),
+            "mode": "edge-word-boundary" if bounds else "proportional",
+            "parts": parts_aligned,
+        }
+
+    align_payload = {
+        "engine": "edge-tts",
+        "voiceoverHash": voiceover_hash,
+        "lines": align_lines,
+    }
+    ALIGNMENTS_PATH.write_text(
+        json.dumps(align_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
     print(f"\nVoiceover: {VOICEOVER} ({probe_duration(VOICEOVER)}s)")
     print(f"Total duration: {total_duration}s | hash: {voiceover_hash}")
     print(f"TTS 条数: {len(lines)}（= wav 段数，非字幕条数）")
-    print("下一步: python scripts/run-align.py  （Whisper 词级时间戳 → audio/alignments.json）")
-    print("Whisper 全失败: ALLOW_FALLBACK_ALIGN=1 python scripts/run-align.py  （草稿估算，非正式交付）")
+    print(f"Alignments: {ALIGNMENTS_PATH} (engine=edge-tts, WordBoundary → subtitleParts)")
+    print("下一步: node scripts/apply-audio-schedule.mjs")
+    print("可选: python scripts/run-align.py 仅当 Edge 边界缺失且须 Whisper 兜底时")
     if total_duration > 150 and RATE != "+18%":
         print("提示: 总时长 >150s，建议将 RATE 改为 '+18%' 后重跑本脚本")
 
