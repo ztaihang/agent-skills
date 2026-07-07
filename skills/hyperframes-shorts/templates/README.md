@@ -19,12 +19,21 @@
 | `templates/scene-density-guide.md` | **镜内防太空**、副信息层次 |
 | `templates/subtitle-tts-guide.md` | **口播/字幕分离 + speak**（写 `lines.json` 前） |
 | `templates/hyperframes-zh-checklist.md` | **中文 HyperFrames 字体/字幕/背景/圆角 + 生成后自检** |
+| `templates/delivery-pitfalls.md` | **交付避坑复盘**（背景/布局/字幕对齐/流水线；可转发给接手人） |
 | `templates/visual-style-guide.md` | 风格轮换、首镜布局、片尾变体 A/B/C |
 
-**写 HTML 前必读 Skill：**
+**写 HTML 前必读 Skill / 官方文档：**
 
-- `design-taste-frontend`（taste-skill）
-- `css-animations` · `design-motion-principles` · `web-typography`
+- `design-taste-frontend` · `hyperframes-creative` · `hyperframes-animation` · `hyperframes-core`
+- **P0** `hyperframes-creative/references/video-composition.md`
+- **P0** `hyperframes-creative/references/data-in-motion.md`（分镜有数据镜时）
+- **P1** `beat-direction.md`（>90s 或 ≥6 镜）· **P1** `design-picker.md`（用户未指定风格）
+- `design-motion-principles` · `web-typography`
+
+**HTML 写完后 Agent 内部（不交给用户）：**
+
+- **P0** `design-adherence.md` · **P0** `snapshot --frames 9`（≥4 镜）
+- **P2** `motion.json` · **P2** `media-use` SFX · **P2** `hyperframes add`
 
 `index.html` 中须预留：
 
@@ -37,6 +46,8 @@
 
 流水线（**全部由 Agent 自动执行**；用户交付后只 `npm run dev`）：
 
-`taste pre-flight` → `design.md` + Motion Plan → **Pre-flight** → **`lines.json`（voice 整句 + subtitle 显示）** → 写 `index.html`（**hyperframes-zh-checklist** + scene-density + L0–L4）→ `generate-tts.py` → **`run-align.py`**（Whisper 全失败 → WSL；草稿 `ALLOW_FALLBACK_ALIGN=1`）→ `apply-audio-schedule.mjs` → `apply-brand.mjs`（有片尾）→ **`verify-delivery-checklist.py`** → **Post-audit** → **`verify-index-encoding.py`** → `npm run check` → 更新 `style-history.json`（若有）
+`taste pre-flight` → `design.md` + Motion Plan（**P0/P1**）→ Pre-flight → `lines.json` → 写 `index.html` → **P0 design-adherence** → TTS 流水线 → `apply-audio-schedule` → `apply-brand`（若有）→ `verify-delivery-checklist` → Post-audit → **P0 snapshot**（≥4镜）→ **P2 motion.json/media-use**（若触发）→ `verify-index-encoding` → `npm run check` → 更新 `style-history.json`
+
+**改 `subtitleParts` 条数后（不重录 TTS）：** `python scripts/realign-line.py <id>` → `apply-audio-schedule.mjs`。详见 **`delivery-pitfalls.md` §字幕与 TTS**。
 
 **Studio 注意：** `npm run dev` 开着时 Studio 可能回写 `index.html` 并把中文变成 `??`。Agent 写 HTML 前先停 dev；用户勿在 Studio 画布改中文，改 `audio/lines.json` 后重跑 TTS 流水线。

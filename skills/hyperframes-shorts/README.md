@@ -13,11 +13,12 @@
 
 | 路径 | 说明 |
 |------|------|
-| `F:\myvideos\agent-skills\skills\hyperframes-shorts\` | **本机源码**（改规范、改 templates/scripts 在这里） |
+| `F:\myvideos\agent-skills\skills\hyperframes-shorts\` | 历史路径（若已迁移见下） |
+| `D:\projects\agent-skills\skills\hyperframes-shorts\` | **本机源码（D 盘）** |
 | `%USERPROFILE%\.agents\skills\hyperframes-shorts\` | Agent 运行时读取（由源码同步/安装） |
 
-改 skill 规范或模板脚本 → 编辑 **F 盘源码** → 再同步到 `~/.agents/skills/`（或 `npx skills add`）。  
-已有视频项目须 **重新复制** `templates/scripts/` 三件套到项目，或手动 merge `align-subtitles.py` / `generate-tts.py` 更新。
+改 skill 规范或模板脚本 → 编辑 **D 盘源码** → 再同步到 `~/.agents/skills/`（或 `npx skills add`）。  
+已有视频项目须 **重新复制** `templates/scripts/`（含 **`realign-line.py`**）到项目，或手动 merge 脚本更新。
 
 ---
 
@@ -41,11 +42,8 @@ npx skills add ztaihang/agent-skills@hyperframes-shorts -a trae -y
 ### 还须安装
 
 ```bash
+npx hyperframes skills update   # 拉齐 hyperframes / core / animation / creative / cli
 npx skills add leonxlnx/taste-skill@design-taste-frontend -g -y
-npx skills add heygen-com/hyperframes@hyperframes
-npx skills add heygen-com/hyperframes@hyperframes-cli
-npx skills add heygen-com/hyperframes@gsap
-npx skills add heygen-com/hyperframes@css-animations
 npx skills add kylezantos/design-motion-principles@design-motion-principles
 npx skills add wondelai/skills@web-typography
 ```
@@ -82,6 +80,7 @@ npm run dev
 | [templates/scene-density-guide.md](templates/scene-density-guide.md) | 镜内防太空 |
 | [templates/subtitle-tts-guide.md](templates/subtitle-tts-guide.md) | 口播/字幕分离 + speak 读音 |
 | [templates/hyperframes-zh-checklist.md](templates/hyperframes-zh-checklist.md) | **中文交付自检（字体/字幕/背景）** |
+| [templates/delivery-pitfalls.md](templates/delivery-pitfalls.md) | **交付避坑复盘**（可单独转发给接手人） |
 | [SKILL.md](SKILL.md) | 完整 Agent 规范 |
 
 ---
@@ -89,10 +88,12 @@ npm run dev
 ## 特性摘要
 
 - 语义拆镜、多种布局、**每项目 `design.md` + Motion Plan + visual-styles 轮换**
-- 写 HTML 前**必读** taste-skill + anti-slop 方案 + css-animations / design-motion-principles / web-typography
+- **HyperFrames 0.7 + P0/P1/P2 真实感提质**（design-adherence / video-composition / data-in-motion / snapshot / design-picker 等）
+- 写 HTML 前**必读** taste-skill + anti-slop + hyperframes-animation/creative + design-motion-principles + web-typography
 - **镜内防太空**：短镜须副信息 + `#root` 静态装饰（`scene-density-guide.md`；禁止每镜 infinite ambient）
 - **口播 / 字幕分离**：`voice` 整句 TTS；`subtitle` 仅上屏；禁止为 maxHan 拆多 wav
 - **字幕对齐**：TTS 后 **`align-subtitles.py`**（首选）；Whisper 不可用时 **`fallback-alignments.py`**（权重兜底，须听检）→ `apply-audio-schedule.mjs`
+- **改 subtitleParts 条数后**：`realign-line.py <id>` → 再跑 `apply-audio-schedule.mjs`（见 `delivery-pitfalls.md`）
 - **`speak` 规范**：数字+量词连写（`十三个`）；`generate-tts.py` 自动 `normalize_speak()`
 - Edge TTS 单轨 `voiceover.wav` + 字幕与口播同步
 - 品牌片尾：`off` / 变体 A·B·C / 自定义

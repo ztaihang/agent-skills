@@ -303,32 +303,96 @@ def check_subtitle_voice_substrings() -> None:
 
 
 def check_subtitle_orphan_parts() -> None:
-    """Warn when auto-split leaves tiny orphan subtitle rows (e.g. 层级 alone)."""
+    """Warn when subtitle parts are too short, too many, or orphan fragments."""
+
+    def visual_units(text: str) -> float:
+        plain = re.sub(r"[，。！？：；、\s]+", "", text)
+        han = len(re.findall(r"[\u4e00-\u9fff]", plain))
+        ascii_count = len(re.findall(r"[\x00-\x7f]", plain))
+        return han + ascii_count * 0.55
+
+    def subtitle_limits() -> tuple[float, float, int, int]:
+        max_han, min_han, max_parts = 16.0, 8.0, 8
+        if META.is_file():
+            try:
+                meta = json.loads(META.read_text(encoding="utf-8"))
+                w = int(meta.get("width", 1920))
+                h = int(meta.get("height", 1080))
+                if h > w:
+                    max_han, min_han, max_parts = 12.0, 7.0, 7
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
+        return max_han, min_han, max_parts, max_parts - 1
+
+    ORPHAN_HINTS = frozenset(
+        {
+            "这一期",
+            "各司其职",
+            "在后台",
+            "分开跑",
+            "能用的",
+            "保留",
+            "因此",
+            "而且",
+            "也就是说",
+            "接下来",
+            "首先",
+            "其次",
+        }
+    )
+
     schedule_path = ROOT / "audio" / "schedule.json"
-    if not schedule_path.is_file():
+    lines_path = LINES
+    rows: list[dict] = []
+    if schedule_path.is_file():
+        try:
+            sched = json.loads(schedule_path.read_text(encoding="utf-8"))
+            rows = sched.get("schedule") or []
+        except json.JSONDecodeError:
+            pass
+    if not rows and lines_path.is_file():
+        try:
+            raw = json.loads(lines_path.read_text(encoding="utf-8"))
+            rows = raw if isinstance(raw, list) else []
+        except json.JSONDecodeError:
+            pass
+    if not rows:
         return
-    try:
-        sched = json.loads(schedule_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return
+
+    max_han, min_han, max_parts, warn_parts = subtitle_limits()
 
     def strip_tail(s: str) -> str:
         return re.sub(r"[，。！？：；、]+$", "", s.strip())
 
-    for row in sched.get("schedule") or []:
-        parts = row.get("subtitleParts") or []
+    for row in rows:
+        parts = row.get("subtitleParts") or row.get("subtitle") or []
+        if isinstance(parts, str):
+            parts = [parts]
         if len(parts) <= 1:
             continue
         lid = row.get("id", "?")
+        if len(parts) > max_parts:
+            warn(
+                f"{lid}: subtitleParts 共 {len(parts)} 条（建议 ≤{warn_parts}）— "
+                f"合并相邻短条，见 subtitle-tts-guide.md §5.3"
+            )
         for j, part in enumerate(parts):
-            if j == 0:
-                continue
             core = strip_tail(str(part))
-            han = len(re.findall(r"[\u4e00-\u9fff]", core))
-            if han <= 2 and len(core) <= 4:
+            vu = visual_units(core)
+            if vu < min_han:
+                warn(
+                    f"{lid}: subtitleParts[{j}]「{core}」仅 {vu:.1f} 视觉单位 "
+                    f"(< minHan {min_han:.0f}) — 与相邻条合并"
+                )
+            elif vu > max_han:
+                warn(
+                    f"{lid}: subtitleParts[{j}]「{core[:20]}…」{vu:.1f} 视觉单位 "
+                    f"(> maxHan {max_han:.0f}) — 在逗号/子句处再拆"
+                )
+            if core in ORPHAN_HINTS or (len(core) <= 4 and vu <= 4):
                 warn(
                     f"{lid}: subtitleParts[{j}] 仅「{core}」— "
-                    f"疑似自动拆断，请在 lines.json 手写语义断点"
+                    f"疑似孤词碎条，请在 lines.json 手写语义断点"
                 )
 
 

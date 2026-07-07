@@ -11,12 +11,12 @@
 |------|-------------|------|
 | 1 | **本 skill** `SKILL.md` | 拆镜、流水线、交付 |
 | 2 | **`design-taste-frontend`**（taste-skill） | 反 slop 门禁、排版纪律、pre-flight |
-| 3 | **`hyperframes`** → `visual-styles.md` + `house-style.md` | 命名风格 preset、lazy defaults |
-| 4 | **`css-animations`** | 背景 atmosphere 循环动效 |
+| 3 | **`hyperframes-creative`** | visual-styles + house-style + **P0 video-composition** + **P0 data-in-motion（有数据镜）** |
+| 4 | **`hyperframes-animation`** | L0 CSS + GSAP + L4 转场 + **P1 rules-index** |
 | 5 | **`design-motion-principles`** | 入场 stagger、缓动、动效 audit |
 | 6 | **`web-typography`** | 字号层级、字体配对 |
-| 7 | **`visual-style-guide.md`** | 风格轮换、首镜/片尾、禁止清单 |
-| 8 | **项目 `design.md`** | 本支视频唯一视觉真相 |
+| 7 | **`visual-style-guide.md`** | 风格轮换、首镜/片尾；**P1 design-picker**（未指定风格） |
+| 8 | **项目 `design.md`** | 唯一视觉真相 + Motion Plan + L4 表 |
 
 **硬门禁：** 无 `design.md` → 禁止写 `index.html`。  
 **硬门禁：** 未读 taste-skill + 三前端 skill → 禁止写 `index.html`。
@@ -170,15 +170,19 @@ taste dial: 5/6/6 | design.md: ✓ | 动效层级: L0–L3 已覆盖
 | 钩子/冲突/金句 | kinetic typography 逐字 | 专有名词、普通信息词 |
 | 片尾 slogan | scale punch（变体 A/B） | 每镜都做 kinetic |
 
-### L4 · 转场（镜间 — 防「硬切廉价感」）
+### L4 · 转场（镜间 — 对接 HyperFrames 0.7 catalog）
 
 | 参数 | 推荐 |
 |------|------|
 | 时长 `TR` | 0.24–0.28s（快节奏默认） |
-| 类型 | blur / push / focus pull / zoom **轮换**，禁止全程同一效果 |
+| **A 池（默认）** | push · blur · zoom/scale · crossfade/focus pull — 每支 **≥3 种**轮换 |
+| **B 池（亮点，全片 0–1 处）** | radial iris · grid dissolve · blinds · light leak |
+| **C 池（默认禁）** | glitch · VHS · page burn · shader — 口播易抢戏 |
+| 参考 | `hyperframes-animation/transitions/catalog.md` → 只读用到的 `css-*.md` |
 | 音效 | 默认可省略；用户要求再加 |
 
-**最低标准：** 全片 **≥2 种** 转场类型；相邻两镜转场类型不重复（除首镜入场）。
+**最低标准：** 全片 **≥3 种 A 池**转场；相邻两镜类型不重复（除首镜入场）。  
+**升级标准（0.7+）：** Motion Plan 写清 `sc1→2 push, sc2→3 blur, sc3→4 grid-dissolve(B), …`
 
 ---
 
@@ -193,7 +197,7 @@ Agent 在写 HTML 前填写：
 - L1 首镜: title stagger 0.1s + 副标题 delay 0.15s
 - L2 sc3: 指标 47% count-up @ schedule s17.start；四卡逐步 glow @ s18/s19
 - L3 kinetic: sc1 钩子「纸糊」@ s3；sc5 结论 @ s42
-- L4 转场: sc1→2 push, sc2→3 blur, sc3→4 zoom, …
+- L4 转场: sc1→2 push(A), sc2→3 blur(A), sc3→4 crossfade(A), sc4→5 radial-iris(B), …
 - 禁止: 全片 y:30 同一 ease；禁止纯黑底；禁止每镜 feTurbulence infinite
 ```
 

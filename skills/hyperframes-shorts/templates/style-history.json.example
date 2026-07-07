@@ -3,6 +3,7 @@
   "lastOpeningLayout": "split-narration-visual",
   "lastOutroVariant": "a",
   "lastAtmosphere": ["particle-field", "radial-glow"],
-  "lastTransitionSet": ["blur", "blur", "push"],
+  "lastTransitionSet": ["push", "blur", "crossfade", "radial-iris"],
+  "lastTransitionTierB": "radial-iris",
   "updatedAt": "2026-06-01"
 }

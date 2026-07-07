@@ -78,14 +78,17 @@ differentiatorsFromLast:
 
 ## Motion Plan
 
-（写 HTML 前必填 — 见 `anti-slop-motion-scheme.md` §三、§四）
+（写 HTML 前必填 — 见 `anti-slop-motion-scheme.md` §三、§四 与 SKILL **P0/P1**）
 
-- **L0 背景:** `#root` gradient + grid（**静态**）；可选全片 1 个 `#root` 慢循环
+- **P0 video-composition:** 每镜 8–10 元素；前景 metadata（chip/overline/分隔线）
+- **P0 data-in-motion（有数据镜时）:** 列出 scN 数字镜 + 视觉载体（bar/ring/count-up）
+- **P1 beat-direction（>90s 或 ≥6 镜）:** 节奏模板，如 fast-fast-SLOW-fast
+- **L0 背景:** `#root` gradient + grid（静态）；可选全片 1 个慢循环
 - **L1 入场:** 首镜 title stagger 0.1s；流程镜 步骤→箭头→步骤
-- **L2 语义:** scN 指标 count-up @ schedule 某条 start；并列卡逐步 glow
-- **L3 kinetic:** 全片 2–4 处（列出 scene + 词句）
-- **L4 转场:** push / blur / zoom 轮换列表
-- **禁止:** 纯黑无 `#root` 装饰；每镜 feTurbulence infinite；全片同一 y:30 入场
+- **L2 语义:** scN count-up @ schedule；**P1-1** 优先查 rules-index
+- **L3 kinetic:** 全片 2–4 处
+- **L4 转场（0.7 catalog）:** A 池 ≥3 种轮换 + 可选 1 处 B 池
+- **P0-3 design-adherence:** 交付前核对 hex/字体/圆角与本文 YAML 一致
 
 ## Motion
 

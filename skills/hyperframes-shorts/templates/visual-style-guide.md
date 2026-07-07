@@ -12,9 +12,9 @@
 | 1 | **`design-taste-frontend`**（taste-skill） | 反 slop pre-flight；HyperFrames 用 `mt` 时间轴，禁用 ScrollTrigger |
 | 2 | **`anti-slop-motion-scheme.md`** | 五道门禁 + L0–L4 动效层级（防廉价静态 PPT） |
 | 3 | **`hyperframes-zh-checklist.md`** | **中文字体/字幕/背景/圆角 + 生成后自检** |
-| 4 | **`hyperframes` → `visual-styles.md`** | 选命名风格预设（YAML tokens） |
-| 5 | **`hyperframes` → `house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
-| 6 | **`css-animations`** skill | 背景 shimmer / glow / grain 等装饰动效 |
+| 4 | **`hyperframes-creative` → `references/visual-styles.md`** | 选命名风格预设（YAML tokens） |
+| 5 | **`hyperframes-creative` → `references/house-style.md`** | 避免 AI 味 lazy defaults（cyan-on-dark、渐变字等） |
+| 6 | **`hyperframes-animation`** skill | GSAP `mt` + CSS keyframe 背景装饰；L4 转场见 `transitions/catalog.md` |
 | 7 | **`design-motion-principles`** skill | 入场节奏、缓动、stagger；交付前 Audit |
 | 8 | **`web-typography`** skill | 竖屏/横屏字号层级、行高、可读性 |
 | 9 | **本文件** | 选风格、写 `design.md`、排布局、选片尾变体 |
@@ -78,7 +78,7 @@
 
 ## 4. 风格 → 首镜 / 装饰 / 转场（勿全用 split-narration-visual）
 
-| 风格 | 推荐首镜布局 | 背景装饰（css-animations） | 转场倾向 |
+| 风格 | 推荐首镜布局 | 背景装饰（hyperframes-animation CSS） | 转场倾向 |
 |------|-------------|---------------------------|---------|
 | Swiss Pulse | `metric-comparison-band` 或 `split-narration-visual` | 网格线、注册标记 | 硬切 / cinematic-zoom |
 | Data Drift | `kinetic-typography` 或 `data-chart-race` | 粒子场、径向光晕 | gravitational-lens |

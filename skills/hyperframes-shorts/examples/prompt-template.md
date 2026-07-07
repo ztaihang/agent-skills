@@ -82,13 +82,17 @@ taste 参数：（可选，短视频默认 5/6/6）
 硬性版式（必须遵守）：
 - 口播稿与上屏文案请分开提供；TTS 严格按口播稿整句生成，**禁止为字幕单行上限拆分 TTS**
 - 底部字幕每条永远单行；超长只在逗号/句号处拆 **显示**（subtitle），不拆配音 wav
+- **字幕节奏**：横屏每条 **8–16 视觉单位**（汉字 + 英文×0.55）；每条 wav **3–6 条**字幕；禁止孤词成条（如单独「这一期」「各司其职」）
 - lines.json：**voice** 整句 TTS；**subtitle/subtitleParts 必须是 voice 连续子串**（禁止缩写）；**speak** 按 id 纠音，禁止全局替换
 - TTS 保留标点（含句末）；上屏字幕不要句末标点（脚本自动处理）
 - 多音字、英文、专有名词：`speak` 纠 TTS 读音，`voice`/字幕保持正确写法；**同音替代用非多音字（如量→辆），词内不加空格**
 - 短口播镜须加副信息+ambient，禁止大面积空镜（见 scene-density-guide）
 - 同场景上屏文字不得重叠遮挡
 - 禁止 emoji 大图、AI 风表情包/3D 卡通插图；用 SVG/几何/数据 viz 装饰
-- 动效：`#root` 静态背景 + 每镜 L1 stagger；数字对齐口播 L2；镜间转场轮换 L4（**禁止**每镜 infinite ambient）
+- 动效：L0–L4 + **P0** video-composition + design-adherence + snapshot（≥4镜）
+- **P1** design-picker（未指定风格）· atomic rules · beat-direction（长片）
+- **P2** media-use SFX / motion.json / registry（条件触发）
+- TTS：**Edge TTS**（非 hyperframes-media）
 ```
 
 | 字段 | 必填 | 不填时 |

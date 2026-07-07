@@ -35,6 +35,7 @@
 | S4 | **弹幕可读** | `font-weight: 700`；`text-shadow` 双层黑色描边 + 轻外晕 |
 | S5 | **字号** | 横屏 ≥ 56px（推荐 60px）；竖屏 ≥ 52px |
 | S6 | **与口播同步** | 字幕 = `voice` **连续子串**（§1.1）；一条 wav 可多条 `.sl`；改 voice/speak/subtitle **必**重跑 TTS 三件套 |
+| S7 | **节奏密度** | 横屏每条 **8–16** 视觉单位、竖屏 **7–12**；每条 wav **3–6** 条字幕；禁止孤词碎条（「这一期」「各司其职」单独成条）— 见 `subtitle-tts-guide.md` §5.3 |
 
 **上屏副信息（overline / chip）：** 默认 **中文**；英文仅限产品名、Skill 名、口播必须术语。禁止 `COMPACT` / `PAIN POINT` 等装饰英文标签（见 `scene-density-guide.md`）。
 
@@ -115,8 +116,10 @@ npm run check
 | dev 卡住 + 字体 WARN | 系统字体 / Google Fonts | 本地 `@font-face` + 删回退 |
 | 字幕挡画面 | 内容区太低 / padding-bottom 不足 | 提高安全区或上移对比组件 |
 | 背景仍像黑屏 | 只有 flat 色、无 gradient | 加 `#root` gradient + 网格/暗角（静态） |
-| 长句字幕偏快/偏慢 / 字与口播不一致 | subtitle 缩写改写、alignments 过期、或用了 fallback 权重 | 改 lines.json 为 voice 子串 + 手写 subtitleParts → 重跑 TTS → align（或 fallback）→ apply → **听检** |
+| 长句字幕偏快/偏慢 / 字与口播不一致 | subtitle 缩写改写、alignments 过期、或用了 fallback 权重 | 改 lines.json 为 voice 子串 + 手写 subtitleParts → 重跑 TTS → align（或 **`realign-line.py`**）→ apply → **听检** |
+| **仅某一镜字幕飘移** | `alignments.json` 该 id 的 `parts.length` ≠ `subtitleParts.length` | `python scripts/realign-line.py <id>` → `apply-audio-schedule.mjs`（见 **`delivery-pitfalls.md`**） |
 | 字幕 orphan（如单独「层级」） | 未手写 subtitleParts，自动按宽度切字 | lines.json 补语义断点（如「清晰的七个层级」） |
+| 字幕过碎 / 条数过多 | 只为满足 maxHan 拆太细，或 >8 条/wav | 合并相邻短条至 ≥minHan；见 `subtitle-tts-guide.md` §5.3 |
 | TTS 数字处怪停顿 | speak 写「十三 个」带空格 | speak 连写「十三个」；脚本已 normalize_speak |
 | align-subtitles / run-align 崩溃 (Windows) | faster-whisper 进程异常 | `python scripts/run-align.py`（自动试 float32/tiny）；仍失败 → **WSL2** 跑同命令；仅草稿 `ALLOW_FALLBACK_ALIGN=1` |
 | preview CPU 高 | 每镜 `.ambient` + CSS infinite / feTurbulence grain | 删 per-scene ambient；保留 `#root` 静态装饰 |
@@ -133,4 +136,5 @@ npm run check
 | `scene-density-guide.md` | 镜内密度、防空镜 |
 | `anti-slop-motion-scheme.md` | L0–L4 动效门禁 |
 | `visual-style-guide.md` | 风格轮换、禁止纯黑 |
+| **`delivery-pitfalls.md`** | **复盘避坑 + 数据流 + 对齐机制 + 给人转发** |
 | **本文件** | **中文落地 + 字体 + 字幕区 + 生成后自检** |
